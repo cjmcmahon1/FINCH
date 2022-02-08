@@ -3,7 +3,7 @@
 % Start with some amplitude distribution and propagate a short distance
 
 % Parameters; units mm
-L = 250e-3; lambda = 490e-6; k = 2*pi/lambda; R = 5e-3;
+L = 250e-3; lambda = 490e-6; k = 2*pi/lambda; R = 5e-2;
 M = 1024; % samples
 
 
@@ -22,11 +22,12 @@ fy=fx;
 
 % Define initial field
 % field = circularAperture(L, R, M, 0, 0);
-field = exp(-4*log(2)/R^2*(X.^2+Y.^2));
+field = exp(-4*log(2)/R^2*(X.^2+Y.^2));%-4*log(2)
 
 %select propagation distance
-w0 = fwhm2D(field, x, y);
-w0x = w0(1);
+w0 = fwhm2D(abs(field), x, y);
+%w0x = w0(1);
+w0x = sqrt(R^2 / (4*log(2)));
 z = 0.5*k*(w0x^2);
 sprintf("Rayleigh Distance Z_r = %.3e", z)
 %z = 200e-2; % propagation distance
@@ -46,10 +47,10 @@ x_ratio = fwhm_propped(1) / fwhm_source(1);
 y_ratio = fwhm_propped(2) / fwhm_source(2);
 sprintf("source X FWHM:     %.3f\n" + ...
         "propagated X FWHM: %.3f\n" + ...
-        "X FWHM ratio:      %.3f\n" + ...
+        "X FWHM ratio:      %.5f\n" + ...
         "source Y FWHM:     %.3f\n" + ...
         "propagated Y FWHM: %.3f\n" + ...
-        "Y FWHM ratio:      %.3f", ...
+        "Y FWHM ratio:      %.5f", ...
         [fwhm_source(1), fwhm_propped(1), ...
          x_ratio, fwhm_source(2), ...
          fwhm_propped(2), y_ratio])
