@@ -33,13 +33,16 @@ r_first_0 = 1.22/2 * lambda / NA;
 H = exp(-1i*pi*lambda*z*(FX.^2 + FY.^2));
 
 %gaussian_beam_test()
-
-plot_im(ap_ft, 'FT Aperture')
+%plot_im(ap_ft, 'FT Aperture')
+p1 = propagate(0.1, 200e-3);
+p2 = propagate(0.1, 201e-3);
+interference = p1 + p2;
+plot_im(interference, "p1 + p2")
 
 function H = fresnel_propagator(z)
     % Define Fresnel Propagtor
     %z: propagataion distance
-    global L M;
+    global L M lambda;
     dx = L/M;
     % Define frequency axes
     fMax = 1/(2*dx);
