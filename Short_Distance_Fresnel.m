@@ -3,7 +3,7 @@
 % Start with some amplitude distribution and propagate a short distance
 
 % Parameters; units mm
-L = 250e-3; lambda = 490e-6; k = 2*pi/lambda; R = 5e-2;
+L = 250e-3; lambda = 490e-6; k = 2*pi/lambda; R = 5e-3;
 M = 1024; % samples
 
 
@@ -51,7 +51,8 @@ sprintf("source X FWHM:     %.3f\n" + ...
         "propagated Y FWHM: %.3f\n" + ...
         "Y FWHM ratio:      %.3f", ...
         [fwhm_source(1), fwhm_propped(1), ...
-    x_ratio, fwhm_source(2), fwhm_propped(2), y_ratio])
+         x_ratio, fwhm_source(2), ...
+         fwhm_propped(2), y_ratio])
 
 % Plot
 subplot(1,3,1);
@@ -62,7 +63,7 @@ colormap('gray');
 
 subplot(1,3,2);
 imagesc(real(H).*abs(fftshift(ft)));
-title('Fresnel Propagator Sampling')
+title('Fresnel Propagator Sampling');
 axis('square');
 colormap('gray');
 
@@ -74,9 +75,9 @@ colormap('gray');
 
 function fwhm_res = fwhm2D(plane, x, y)
     %get FWHM of a 2D array along central x and y axes
-    [x_Midpoint, y_Midpoint] = size(plane);
-    x_dist = plane(x_Midpoint, :);
-    y_dist = plane(:, y_Midpoint);
+    midpoints = (size(plane)/2);
+    x_dist = plane(midpoints(1), :);
+    y_dist = plane(:, midpoints(2));
     x_fwhm = fwhm(x_dist, x);
     y_fwhm = fwhm(y_dist, y);
     fwhm_res = [x_fwhm, y_fwhm];
@@ -88,7 +89,7 @@ function width = fwhm(distribution, coordinates)
     hm = (max(distribution) + min(distribution))/2;
     %get indices of the first and last half-max point
     idx1 = find((distribution >= hm), 1, 'first');
-    idx2 = find(distribution >= hm, 1, 'last');
+    idx2 = find((distribution >= hm), 1, 'last');
     %convert to a length based on input cooridnates
     width = coordinates(idx2) - coordinates(idx1);
 end
