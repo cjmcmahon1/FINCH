@@ -20,69 +20,82 @@ fx = -fMax:df:fMax-df;
 fy=fx;
 [FX,FY] = meshgrid(fx,fy);
 
-% Define initial field
-% field = circularAperture(L, R, M, 0, 0);
-field = exp(-4*log(2)/R^2*(X.^2+Y.^2));%-4*log(2)
 fq_aperture = (FY.^2 + FX.^2) < (NA/lambda)^2;
 ap_ft = fftshift(fft2(fq_aperture));
 %radius where bessel function has first zero
 r_first_0 = 1.22/2 * lambda / NA;
 
 %select propagation distance
-w0 = fwhm2D(abs(field), x, y);
-%w0x = w0(1);
-w0x = sqrt(R^2 / (4*log(2)));
-z = 0.5*k*(w0x^2);
-sprintf("Rayleigh Distance Z_r = %.3e", z)
 %z = 200e-2; % propagation distance
 
 % Define Fresnel Propagtor
 H = exp(-1i*pi*lambda*z*(FX.^2 + FY.^2));
 
-% Propagate
-ft = fft2(field);
-proppedFt = ft .* fftshift(H);
-propped = ifft2(proppedFt);
-
-%calculate FWHM
-fwhm_source = fwhm2D(abs(field), x, y);
-fwhm_propped = fwhm2D(abs(propped), x, y);
-x_ratio = fwhm_propped(1) / fwhm_source(1);
-y_ratio = fwhm_propped(2) / fwhm_source(2);
-sprintf("source X FWHM:     %.3f\n" + ...
-        "propagated X FWHM: %.3f\n" + ...
-        "X FWHM ratio:      %.5f\n" + ...
-        "source Y FWHM:     %.3f\n" + ...
-        "propagated Y FWHM: %.3f\n" + ...
-        "Y FWHM ratio:      %.5f", ...
-        [fwhm_source(1), fwhm_propped(1), ...
-         x_ratio, fwhm_source(2), ...
-         fwhm_propped(2), y_ratio])
-
-% Plot
-subplot(2,2,1);
-imagesc(abs(field).^2);
-title(sprintf('Source (FWHM=%.3f)', fwhm_source(1)));
-axis('square');
-colormap('gray');
-
-subplot(2,2,2);
-imagesc(real(H).*abs(fftshift(ft)));
-title('Fresnel Propagator Sampling');
-axis('square');
-colormap('gray');
-
-subplot(2,2,3);
-imagesc(abs(propped).^2);
-title(sprintf('Propagated (FWHM=%.3f)', fwhm_propped(1)));
-axis('square');
-colormap('gray');
-
-subplot(2,2,4);
 imagesc(abs(ap_ft));
 title('FT Aperture');
 axis('square');
 colormap('gray');
+
+function gaussian_beam_test()
+    %Run to test that when we propagate a gaussian beam by the Rayleigh
+    %distance Z_r, the radius of the beam (FWHM) increases by a factor
+    %of sqrt(2).
+    % Define spatial axes
+    dx = L/M;
+    x = -L/2:dx:L/2-dx;
+    y = x;
+    [X,Y] = meshgrid(x,y);
+    
+    % Define frequency axes
+    fMax = 1/(2*dx);
+    df = 1/L;
+    fx = -fMax:df:fMax-df;
+    fy=fx;
+    [FX,FY] = meshgrid(fx,fy);
+    field = exp(-4*log(2)/R^2*(X.^2+Y.^2)); % Define initial field
+    w0 = sqrt(R^2 / (4*log(2))); %width of beam
+    z = 0.5*k*(w0^2); %propagation distance = Rayleigh distance
+    sprintf("Rayleigh Distance Z_r = %.3e", z)
+    % Define Fresnel Propagtor
+    H = exp(-1i*pi*lambda*z*(FX.^2 + FY.^2));
+    % Propagate
+    ft = fft2(field);
+    proppedFt = ft .* fftshift(H);
+    propped = ifft2(proppedFt);
+    
+    %calculate FWHM
+    fwhm_source = fwhm2D(abs(field), x, y);
+    fwhm_propped = fwhm2D(abs(propped), x, y);
+    x_ratio = fwhm_propped(1) / fwhm_source(1);
+    y_ratio = fwhm_propped(2) / fwhm_source(2);
+    sprintf("source X FWHM:     %.3f\n" + ...
+            "propagated X FWHM: %.3f\n" + ...
+            "X FWHM ratio:      %.5f\n" + ...
+            "source Y FWHM:     %.3f\n" + ...
+            "propagated Y FWHM: %.3f\n" + ...
+            "Y FWHM ratio:      %.5f", ...
+            [fwhm_source(1), fwhm_propped(1), ...
+             x_ratio, fwhm_source(2), ...
+             fwhm_propped(2), y_ratio])
+    % Plot
+    subplot(1,3,1);
+    imagesc(abs(field).^2);
+    title(sprintf('Source (FWHM=%.3f)', fwhm_source(1)));
+    axis('square');
+    colormap('gray');
+    
+    subplot(1,3,2);
+    imagesc(real(H).*abs(fftshift(ft)));
+    title('Fresnel Propagator Sampling');
+    axis('square');
+    colormap('gray');
+    
+    subplot(1,3,3);
+    imagesc(abs(propped).^2);
+    title(sprintf('Propagated (FWHM=%.3f)', fwhm_propped(1)));
+    axis('square');
+    colormap('gray');
+end
 
 function fwhm_res = fwhm2D(plane, x, y)
     %get FWHM of a 2D array along central x and y axes
