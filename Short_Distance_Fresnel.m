@@ -123,4 +123,19 @@ end
 function plane = propagate(na, zf)
     %na: numerical aperture
     %af: distance from focus
+    % Define frequency axes
+    dx = L/M;
+    fMax = 1/(2*dx);
+    df = 1/L;
+    fx = -fMax:df:fMax-df;
+    fy=fx;
+    [FX,FY] = meshgrid(fx,fy);
+    %Assuming we have a circular aperture illuminated by a unit-amplitude
+    %plane wave, the fourier transform of the field is just: 
+    fq_aperture = (FY.^2 + FX.^2) < (na/lambda)^2;
+    %The Fresnel propagator is:
+    H = exp(-1i*pi*lambda*zf*(FX.^2 + FY.^2));
+    %To propagate, we just multiply
+    proppedFt = fq_aperture .* fftshift(H);
+    plane = ifft2(proppedFt);
 end
