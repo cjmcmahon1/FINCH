@@ -3,7 +3,7 @@
 % Start with some amplitude distribution and propagate a short distance
 
 % Parameters; units mm
-L = 250e-3; lambda = 490e-6; k = 2*pi/lambda; R = 1e-2;
+L = 250e-3; lambda = 490e-6; k = 2*pi/lambda; R = 5e-2;
 M = 1024; % samples
 
 
@@ -26,8 +26,9 @@ field = exp(-4*log(2)/R^2*(X.^2+Y.^2));
 
 %select propagation distance
 w0 = fwhm2D(field, x, y);
-z = 0.5*k*(w0(1)^2);
-%sprintf("Rayleigh Distance Z_r = %.3e", z)
+w0x = w0(1);
+z = 0.5*k*(w0x^2);
+sprintf("Rayleigh Distance Z_r = %.3e", z)
 %z = 200e-2; % propagation distance
 
 % Define Fresnel Propagtor
@@ -39,16 +40,17 @@ proppedFt = ft .* fftshift(H);
 propped = ifft2(proppedFt);
 
 %calculate FWHM
-fwhm_source = fwhm2D(abs(field).^2, x, y);
-fwhm_propped = fwhm2D(abs(propped).^2, x, y);
+fwhm_source = fwhm2D(abs(field), x, y);
+fwhm_propped = fwhm2D(abs(propped), x, y);
 x_ratio = fwhm_propped(1) / fwhm_source(1);
 y_ratio = fwhm_propped(2) / fwhm_source(2);
-sprintf("source X FWHM: %.3f\n" + ...
-    "propagated X FWHM: %.3f\n" + ...
-    "X FWHM ratio: %.3f\n" + ...
-    "source Y FWHM: %.3f\n" + ...
-    "propagated Y FWHM: %.3f\n" + ...
-    "Y FWHM ratio: %.3f", [fwhm_source(1), fwhm_propped(1), ...
+sprintf("source X FWHM:     %.3f\n" + ...
+        "propagated X FWHM: %.3f\n" + ...
+        "X FWHM ratio:      %.3f\n" + ...
+        "source Y FWHM:     %.3f\n" + ...
+        "propagated Y FWHM: %.3f\n" + ...
+        "Y FWHM ratio:      %.3f", ...
+        [fwhm_source(1), fwhm_propped(1), ...
     x_ratio, fwhm_source(2), fwhm_propped(2), y_ratio])
 
 % Plot
@@ -85,8 +87,8 @@ function width = fwhm(distribution, coordinates)
     %half-max is max+min/2
     hm = (max(distribution) + min(distribution))/2;
     %get indices of the first and last half-max point
-    idx1 = find((distribution >= hm), 1, 'first')
-    idx2 = find(distribution >= hm, 1, 'last')
+    idx1 = find((distribution >= hm), 1, 'first');
+    idx2 = find(distribution >= hm, 1, 'last');
     %convert to a length based on input cooridnates
     width = coordinates(idx2) - coordinates(idx1);
 end
