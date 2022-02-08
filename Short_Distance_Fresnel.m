@@ -3,6 +3,7 @@
 % Start with some amplitude distribution and propagate a short distance
 
 % Parameters; units mm
+global L lambda k R M NA;
 L = 250e-3; lambda = 490e-6; k = 2*pi/lambda; R = 5e-3;
 M = 1024; % samples
 NA = 0.1;
@@ -31,6 +32,8 @@ r_first_0 = 1.22/2 * lambda / NA;
 % Define Fresnel Propagtor
 H = exp(-1i*pi*lambda*z*(FX.^2 + FY.^2));
 
+gaussian_beam_test()
+
 imagesc(abs(ap_ft));
 title('FT Aperture');
 axis('square');
@@ -41,6 +44,7 @@ function gaussian_beam_test()
     %distance Z_r, the radius of the beam (FWHM) increases by a factor
     %of sqrt(2).
     % Define spatial axes
+    global L M R k lambda;
     dx = L/M;
     x = -L/2:dx:L/2-dx;
     y = x;
