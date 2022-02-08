@@ -32,36 +32,43 @@ r_first_0 = 1.22/2 * lambda / NA;
 % Define Fresnel Propagtor
 H = exp(-1i*pi*lambda*z*(FX.^2 + FY.^2));
 
-gaussian_beam_test()
+%gaussian_beam_test()
 
-imagesc(abs(ap_ft));
-title('FT Aperture');
-axis('square');
-colormap('gray');
+plot_im(ap_ft, 'FT Aperture')
 
-function gaussian_beam_test()
-    %Run to test that when we propagate a gaussian beam by the Rayleigh
-    %distance Z_r, the radius of the beam (FWHM) increases by a factor
-    %of sqrt(2).
-    % Define spatial axes
-    global L M R k lambda;
+function H = fresnel_propagator(z)
+    % Define Fresnel Propagtor
+    %z: propagataion distance
+    global L M;
     dx = L/M;
-    x = -L/2:dx:L/2-dx;
-    y = x;
-    [X,Y] = meshgrid(x,y);
-    
     % Define frequency axes
     fMax = 1/(2*dx);
     df = 1/L;
     fx = -fMax:df:fMax-df;
     fy=fx;
     [FX,FY] = meshgrid(fx,fy);
+    H = exp(-1i*pi*lambda*z*(FX.^2 + FY.^2));
+end
+
+function plot_im(image, label)
+    imagesc(abs(image).^2);
+    title(label);
+    axis('square');
+    colormap('gray');
+end
+
+function gaussian_beam_test()
+    %Run to test that when we propagate a gaussian beam by the Rayleigh
+    %distance Z_r, the radius of the beam (FWHM) increases by a factor
+    %of sqrt(2).
+    % Define spatial axes
+    global R k;
     field = exp(-4*log(2)/R^2*(X.^2+Y.^2)); % Define initial field
     w0 = sqrt(R^2 / (4*log(2))); %width of beam
     z = 0.5*k*(w0^2); %propagation distance = Rayleigh distance
     sprintf("Rayleigh Distance Z_r = %.3e", z)
-    % Define Fresnel Propagtor
-    H = exp(-1i*pi*lambda*z*(FX.^2 + FY.^2));
+    % Get Fresnel Propagtor
+    H = fresnel_propagator(z);
     % Propagate
     ft = fft2(field);
     proppedFt = ft .* fftshift(H);
@@ -141,6 +148,7 @@ function plane = propagate(na, zf)
     %na: numerical aperture
     %af: distance from focus
     % Define frequency axes
+    global L M lambda;
     dx = L/M;
     fMax = 1/(2*dx);
     df = 1/L;
@@ -151,7 +159,7 @@ function plane = propagate(na, zf)
     %plane wave, the fourier transform of the field is just: 
     fq_aperture = (FY.^2 + FX.^2) < (na/lambda)^2;
     %The Fresnel propagator is:
-    H = exp(-1i*pi*lambda*zf*(FX.^2 + FY.^2));
+    H = fresnel_propagator(zf);
     %To propagate, we just multiply
     proppedFt = fq_aperture .* fftshift(H);
     plane = ifft2(proppedFt);
