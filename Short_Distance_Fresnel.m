@@ -3,9 +3,9 @@
 % Start with some amplitude distribution and propagate a short distance
 
 % Parameters; units mm
-L = 250e-3; lambda = 490e-6; k = 2*pi/lambda; R = 5e-2;
+L = 250e-3; lambda = 490e-6; k = 2*pi/lambda; R = 5e-3;
 M = 1024; % samples
-
+NA = 0.1;
 
 % Define spatial axes
 dx = L/M;
@@ -23,6 +23,10 @@ fy=fx;
 % Define initial field
 % field = circularAperture(L, R, M, 0, 0);
 field = exp(-4*log(2)/R^2*(X.^2+Y.^2));%-4*log(2)
+fq_aperture = (FY.^2 + FX.^2) < (NA/lambda)^2;
+ap_ft = fftshift(fft2(fq_aperture));
+%radius where bessel function has first zero
+r_first_0 = 1.22/2 * lambda / NA;
 
 %select propagation distance
 w0 = fwhm2D(abs(field), x, y);
@@ -56,21 +60,27 @@ sprintf("source X FWHM:     %.3f\n" + ...
          fwhm_propped(2), y_ratio])
 
 % Plot
-subplot(1,3,1);
+subplot(2,2,1);
 imagesc(abs(field).^2);
 title(sprintf('Source (FWHM=%.3f)', fwhm_source(1)));
 axis('square');
 colormap('gray');
 
-subplot(1,3,2);
+subplot(2,2,2);
 imagesc(real(H).*abs(fftshift(ft)));
 title('Fresnel Propagator Sampling');
 axis('square');
 colormap('gray');
 
-subplot(1,3,3);
+subplot(2,2,3);
 imagesc(abs(propped).^2);
 title(sprintf('Propagated (FWHM=%.3f)', fwhm_propped(1)));
+axis('square');
+colormap('gray');
+
+subplot(2,2,4);
+imagesc(abs(ap_ft));
+title('FT Aperture');
 axis('square');
 colormap('gray');
 
@@ -108,4 +118,9 @@ function a = circularAperture(L, R, M, xC, yC)
     y = x;
     [X,Y] = meshgrid(x,y);
     a = rect(.5 * ((X-xC).^2 + (Y-yC).^2) / (R^2));
+end
+
+function plane = propagate(na, zf)
+    %na: numerical aperture
+    %af: distance from focus
 end
