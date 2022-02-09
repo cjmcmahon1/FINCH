@@ -27,7 +27,7 @@ fy=fx;
 %run check that first bessel function result (Goodman 4.4.2)
 %has its first zero as predicted by the bessel function on
 %Wikipedia.
-bessel_function_test()
+%bessel_function_test()
 
 %Generate fields by Fresnel propagating constant amplitude,
 %circular aperture fields two different distances z1 & z2. 
@@ -35,12 +35,12 @@ bessel_function_test()
 p1 = propagate(0.1, 200e-3);
 p2 = propagate(0.1, 220e-3);
 interference = struct('field', p1.field + p2.field, 'x', p1.x, 'y', p1.y);
-% subplot(1,3,1)
-% plot_im(p1, "P1 (z=200um)")
-% subplot(1,3,2)
-% plot_im(p2, "P2 (z=220um)")
-% subplot(1,3,3)
-% plot_im(interference, "P1 + P2")
+subplot(1,3,1)
+plot_im(p1, "P1 (z=200um)")
+subplot(1,3,2)
+plot_im(p2, "P2 (z=220um)")
+subplot(1,3,3)
+plot_im(interference, "P1 + P2")
 
 function H = fresnel_propagator(z, L, M, lambda)
     arguments
@@ -214,11 +214,13 @@ function plane_struct = propagate(na, zf, L, M, lambda)
     %Assuming we have a circular aperture illuminated by a unit-amplitude
     %plane wave, the fourier transform of the field is just a circ()
     %function with radius NA/lambda (Goodman 6.2.2):
+    %This should probably be normalized in some way
     fq_aperture = (FY.^2 + FX.^2) < (na/lambda)^2;
     %The Fresnel propagator is:
     H = fresnel_propagator(zf, L, M, lambda);
     %To propagate, we just multiply
     proppedFt = fftshift(fq_aperture .* H);
     plane = ifftshift(ifft2(proppedFt));
+    %return struct so we can plot with correct x & y axis
     plane_struct = struct('field', plane, 'x', x, 'y', y);
 end
