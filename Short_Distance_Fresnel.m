@@ -32,17 +32,17 @@ r_first_0 = 1.22/2 * lambda / NA;
 % Define Fresnel Propagtor
 %H = exp(-1i*pi*lambda*z*(FX.^2 + FY.^2));
 
-gaussian_beam_test()
+%gaussian_beam_test()
 %plot_im(ap_ft, 'FT Aperture')
 p1 = propagate(0.1, 200e-3);
 p2 = propagate(0.1, 220e-3);
 interference = p1 + p2;
-% subplot(1,3,1)
-% plot_im(p1, "P1")
-% subplot(1,3,2)
-% plot_im(p2, "P2")
-% subplot(1,3,3)
-% plot_im(interference, "P1 + P2")
+subplot(1,3,1)
+plot_im(p1, "P1")
+subplot(1,3,2)
+plot_im(p2, "P2")
+subplot(1,3,3)
+plot_im(interference, "P1 + P2")
 
 function H = fresnel_propagator(z, L, M, lambda)
     arguments
@@ -187,7 +187,7 @@ function plane = propagate(na, zf, L, M, lambda)
     %plane wave, the fourier transform of the field is just: 
     fq_aperture = (FY.^2 + FX.^2) < (na/lambda)^2;
     %The Fresnel propagator is:
-    H = fresnel_propagator(zf);
+    H = fresnel_propagator(zf, L, M, lambda);
     %To propagate, we just multiply
     proppedFt = fftshift(fq_aperture .* H);
     plane = ifftshift(ifft2(proppedFt));
