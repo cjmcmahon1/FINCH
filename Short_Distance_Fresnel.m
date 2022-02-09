@@ -34,7 +34,7 @@ fy=fx;
 %using propagate(NA, z)
 p1 = propagate(0.1, 200e-3);
 p2 = propagate(0.1, 220e-3);
-interference = p1 + p2;
+interference = struct('field', p1.field + p2.field, 'x', p1.x, 'y', p1.y);
 subplot(1,3,1)
 plot_im(p1, "P1 (z=200um)")
 subplot(1,3,2)
@@ -60,12 +60,13 @@ function H = fresnel_propagator(z, L, M, lambda)
     H = exp(-1i*pi*lambda*z*(FX.^2 + FY.^2));
 end
 
-function plot_im(image, label)
+function plot_im(image_struct, label)
     %quick function to plot a square B&W intensity plot
-    imagesc(abs(image).^2);
+    imagesc(image_struct.x, image_struct.y ,abs(image_struct.field).^2);
     title(label);
     axis('square');
     colormap('gray');
+    colorbar();
 end
 
 function bessel_function_test()
@@ -88,6 +89,7 @@ function bessel_function_test()
     
     fq_aperture = (FY.^2 + FX.^2) < (NA/lambda)^2;
     ap_ft = fftshift(fft2(fq_aperture));
+    aperture_struct = struct('field', ap_ft, 'x', fx, 'y', fy);
     %radius where bessel function has first zero
     r_first_0 = 1.22/2 * lambda / NA;
     fprintf('First Zero of Bessel Function = %.3e\n', r_first_0);
@@ -191,7 +193,7 @@ function a = circularAperture(L, R, M, xC, yC)
     a = rect(.5 * ((X-xC).^2 + (Y-yC).^2) / (R^2));
 end
 
-function plane = propagate(na, zf, L, M, lambda)
+function plane_struct = propagate(na, zf, L, M, lambda)
     arguments
         na %numerical aperture
         zf %distance from focus
@@ -200,8 +202,9 @@ function plane = propagate(na, zf, L, M, lambda)
         lambda = 490e-6
     end
     % Define frequency axes
-    %global L M lambda;
     dx = L/M;
+    x = -L/2:dx:L/2-dx;
+    y = x;
     fMax = 1/(2*dx);
     df = 1/L;
     fx = -fMax:df:fMax-df;
@@ -216,4 +219,5 @@ function plane = propagate(na, zf, L, M, lambda)
     %To propagate, we just multiply
     proppedFt = fftshift(fq_aperture .* H);
     plane = ifftshift(ifft2(proppedFt));
+    plane_struct = struct('field', plane, 'x', x, 'y', y);
 end
