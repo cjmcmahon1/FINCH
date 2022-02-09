@@ -27,7 +27,7 @@ fy=fx;
 %run check that first bessel function result (Goodman 4.4.2)
 %has its first zero as predicted by the bessel function on
 %Wikipedia.
-%bessel_function_test()
+bessel_function_test()
 
 %Generate fields by Fresnel propagating constant amplitude,
 %circular aperture fields two different distances z1 & z2. 
@@ -35,12 +35,12 @@ fy=fx;
 p1 = propagate(0.1, 200e-3);
 p2 = propagate(0.1, 220e-3);
 interference = struct('field', p1.field + p2.field, 'x', p1.x, 'y', p1.y);
-subplot(1,3,1)
-plot_im(p1, "P1 (z=200um)")
-subplot(1,3,2)
-plot_im(p2, "P2 (z=220um)")
-subplot(1,3,3)
-plot_im(interference, "P1 + P2")
+% subplot(1,3,1)
+% plot_im(p1, "P1 (z=200um)")
+% subplot(1,3,2)
+% plot_im(p2, "P2 (z=220um)")
+% subplot(1,3,3)
+% plot_im(interference, "P1 + P2")
 
 function H = fresnel_propagator(z, L, M, lambda)
     arguments
@@ -70,7 +70,8 @@ function plot_im(image_struct, label)
 end
 
 function bessel_function_test()
-    %check that when the
+    %check that we do generate a bessel function whose first zero is the
+    %same as the zero given by Wikipedia
     % Parameters; units mm
     L = 250e-3; lambda = 490e-6;
     M = 1024; % samples
@@ -89,14 +90,14 @@ function bessel_function_test()
     
     fq_aperture = (FY.^2 + FX.^2) < (NA/lambda)^2;
     ap_ft = fftshift(fft2(fq_aperture));
-    aperture_struct = struct('field', ap_ft, 'x', fx, 'y', fy);
+    aperture_struct = struct('field', ap_ft, 'x', x, 'y', x);
     %radius where bessel function has first zero
     r_first_0 = 1.22/2 * lambda / NA;
     fprintf('First Zero of Bessel Function = %.3e\n', r_first_0);
     subplot(1,2,1);
-    plot_im(ap_ft, 'FT of Aperture');
+    plot_im(aperture_struct, 'FT of Aperture');
     subplot(1,2,2);
-    plot(x, abs(ap_ft(512,:)));
+    plot(aperture_struct.x, abs(aperture_struct.field(512,:)));
 end
 
 function gaussian_beam_test()
