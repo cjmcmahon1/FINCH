@@ -3,7 +3,7 @@
 % Start with some amplitude distribution and propagate a short distance
 
 % Parameters; units mm
-global L lambda k R M NA;
+%global L lambda k R M NA;
 L = 250e-3; lambda = 490e-6; k = 2*pi/lambda; R = 5e-3;
 M = 1024; % samples
 NA = 0.1;
@@ -30,19 +30,30 @@ r_first_0 = 1.22/2 * lambda / NA;
 %z = 200e-2; % propagation distance
 
 % Define Fresnel Propagtor
-H = exp(-1i*pi*lambda*z*(FX.^2 + FY.^2));
+%H = exp(-1i*pi*lambda*z*(FX.^2 + FY.^2));
 
-%gaussian_beam_test()
+gaussian_beam_test()
 %plot_im(ap_ft, 'FT Aperture')
 p1 = propagate(0.1, 200e-3);
-p2 = propagate(0.1, 201e-3);
+p2 = propagate(0.1, 220e-3);
 interference = p1 + p2;
-plot_im(interference, "p1 + p2")
+% subplot(1,3,1)
+% plot_im(p1, "P1")
+% subplot(1,3,2)
+% plot_im(p2, "P2")
+% subplot(1,3,3)
+% plot_im(interference, "P1 + P2")
 
-function H = fresnel_propagator(z)
+function H = fresnel_propagator(z, L, M, lambda)
+    arguments
+        z
+        L = 250e-3
+        M = 1024
+        lambda = 490e-6
+    end
     % Define Fresnel Propagtor
     %z: propagataion distance
-    global L M lambda;
+    %global L M lambda;
     dx = L/M;
     % Define frequency axes
     fMax = 1/(2*dx);
@@ -64,14 +75,21 @@ function gaussian_beam_test()
     %Run to test that when we propagate a gaussian beam by the Rayleigh
     %distance Z_r, the radius of the beam (FWHM) increases by a factor
     %of sqrt(2).
+    % parameters used for the test
+    L = 250e-3; lambda = 490e-6; k = 2*pi/lambda; R = 5e-2;
+    M = 1024; % samples
     % Define spatial axes
-    global R k;
+    dx = L/M;
+    x = -L/2:dx:L/2-dx;
+    y = x;
+    [X,Y] = meshgrid(x,y);
+
     field = exp(-4*log(2)/R^2*(X.^2+Y.^2)); % Define initial field
     w0 = sqrt(R^2 / (4*log(2))); %width of beam
     z = 0.5*k*(w0^2); %propagation distance = Rayleigh distance
-    sprintf("Rayleigh Distance Z_r = %.3e", z)
+    fprintf("Rayleigh Distance Z_r = %.3e\n", z)
     % Get Fresnel Propagtor
-    H = fresnel_propagator(z);
+    H = fresnel_propagator(z, L, M, lambda);
     % Propagate
     ft = fft2(field);
     proppedFt = ft .* fftshift(H);
@@ -82,15 +100,15 @@ function gaussian_beam_test()
     fwhm_propped = fwhm2D(abs(propped), x, y);
     x_ratio = fwhm_propped(1) / fwhm_source(1);
     y_ratio = fwhm_propped(2) / fwhm_source(2);
-    sprintf("source X FWHM:     %.3f\n" + ...
+    fprintf("source X FWHM:     %.3f\n" + ...
             "propagated X FWHM: %.3f\n" + ...
             "X FWHM ratio:      %.5f\n" + ...
             "source Y FWHM:     %.3f\n" + ...
             "propagated Y FWHM: %.3f\n" + ...
-            "Y FWHM ratio:      %.5f", ...
+            "Y FWHM ratio:      %.5f\n", ...
             [fwhm_source(1), fwhm_propped(1), ...
              x_ratio, fwhm_source(2), ...
-             fwhm_propped(2), y_ratio])
+             fwhm_propped(2), y_ratio]);
     % Plot
     subplot(1,3,1);
     imagesc(abs(field).^2);
@@ -147,11 +165,18 @@ function a = circularAperture(L, R, M, xC, yC)
     a = rect(.5 * ((X-xC).^2 + (Y-yC).^2) / (R^2));
 end
 
-function plane = propagate(na, zf)
+function plane = propagate(na, zf, L, M, lambda)
+    arguments
+        na
+        zf
+        L = 250e-3
+        M = 1024
+        lambda = 490e-6
+    end
     %na: numerical aperture
     %af: distance from focus
     % Define frequency axes
-    global L M lambda;
+    %global L M lambda;
     dx = L/M;
     fMax = 1/(2*dx);
     df = 1/L;
@@ -164,6 +189,6 @@ function plane = propagate(na, zf)
     %The Fresnel propagator is:
     H = fresnel_propagator(zf);
     %To propagate, we just multiply
-    proppedFt = fq_aperture .* fftshift(H);
-    plane = ifft2(proppedFt);
+    proppedFt = fftshift(fq_aperture .* H);
+    plane = ifftshift(ifft2(proppedFt));
 end
