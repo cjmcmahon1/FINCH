@@ -32,9 +32,12 @@ fy=fx;
 %Generate fields by Fresnel propagating constant amplitude,
 %circular aperture fields two different distances z1 & z2. 
 %using propagate(NA, z)
-p1 = propagate(0.1, 200e-3);
-p2 = propagate(0.1, 220e-3);
+p1 = propagate(0.1, 400e-3);
+p2 = propagate(0.1, 415e-3);
 interference = struct('field', p1.field + p2.field, 'x', p1.x, 'y', p1.y);
+hfig = figure;
+pos = get(hfig,'position');
+set(hfig,'position',pos.*[.5 1 3 1]);
 subplot(1,3,1)
 plot_im(p1, "P1 (z=200um)")
 subplot(1,3,2)
@@ -62,10 +65,13 @@ end
 
 function plot_im(image_struct, label)
     %quick function to plot a square B&W intensity plot
-    imagesc(image_struct.x, image_struct.y ,abs(image_struct.field).^2);
+    imagesc(image_struct.x*1e3, image_struct.y*1e3, ...
+        abs(image_struct.field).^2);
     title(label);
     axis('square');
     colormap('gray');
+    xlabel("x (um)");
+    ylabel("y (um)");
     colorbar();
 end
 
