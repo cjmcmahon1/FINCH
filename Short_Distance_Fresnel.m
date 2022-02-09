@@ -3,7 +3,6 @@
 % Start with some amplitude distribution and propagate a short distance
 
 % Parameters; units mm
-%global L lambda k R M NA;
 L = 250e-3; lambda = 490e-6; k = 2*pi/lambda; R = 5e-3;
 M = 1024; % samples
 NA = 0.1;
@@ -21,39 +20,36 @@ fx = -fMax:df:fMax-df;
 fy=fx;
 [FX,FY] = meshgrid(fx,fy);
 
-fq_aperture = (FY.^2 + FX.^2) < (NA/lambda)^2;
-ap_ft = fftshift(fft2(fq_aperture));
-%radius where bessel function has first zero
-r_first_0 = 1.22/2 * lambda / NA;
-
-%select propagation distance
-%z = 200e-2; % propagation distance
-
-% Define Fresnel Propagtor
-%H = exp(-1i*pi*lambda*z*(FX.^2 + FY.^2));
-
+%run check that gaussian beam area doubles when we propagate
+%by the Rayleigh distance.
 %gaussian_beam_test()
-%plot_im(ap_ft, 'FT Aperture')
+
+%run check that first bessel function result (Goodman 4.4.2)
+%has its first zero as predicted by the bessel function on
+%Wikipedia.
+%bessel_function_test()
+
+%Generate fields by Fresnel propagating constant amplitude,
+%circular aperture fields two different distances z1 & z2. 
+%using propagate(NA, z)
 p1 = propagate(0.1, 200e-3);
 p2 = propagate(0.1, 220e-3);
 interference = p1 + p2;
 subplot(1,3,1)
-plot_im(p1, "P1")
+plot_im(p1, "P1 (z=200um)")
 subplot(1,3,2)
-plot_im(p2, "P2")
+plot_im(p2, "P2 (z=220um)")
 subplot(1,3,3)
 plot_im(interference, "P1 + P2")
 
 function H = fresnel_propagator(z, L, M, lambda)
     arguments
-        z
+        z % propagataion distance
         L = 250e-3
         M = 1024
         lambda = 490e-6
     end
     % Define Fresnel Propagtor
-    %z: propagataion distance
-    %global L M lambda;
     dx = L/M;
     % Define frequency axes
     fMax = 1/(2*dx);
@@ -65,10 +61,40 @@ function H = fresnel_propagator(z, L, M, lambda)
 end
 
 function plot_im(image, label)
+    %quick function to plot a square B&W intensity plot
     imagesc(abs(image).^2);
     title(label);
     axis('square');
     colormap('gray');
+end
+
+function bessel_function_test()
+    %check that when the
+    % Parameters; units mm
+    L = 250e-3; lambda = 490e-6;
+    M = 1024; % samples
+    NA = 0.01;
+    
+    % Define spatial axes
+    dx = L/M;
+    x = -L/2:dx:L/2-dx;
+    
+    % Define frequency axes
+    fMax = 1/(2*dx);
+    df = 1/L;
+    fx = -fMax:df:fMax-df;
+    fy=fx;
+    [FX,FY] = meshgrid(fx,fy);
+    
+    fq_aperture = (FY.^2 + FX.^2) < (NA/lambda)^2;
+    ap_ft = fftshift(fft2(fq_aperture));
+    %radius where bessel function has first zero
+    r_first_0 = 1.22/2 * lambda / NA;
+    fprintf('First Zero of Bessel Function = %.3e\n', r_first_0);
+    subplot(1,2,1);
+    plot_im(ap_ft, 'FT of Aperture');
+    subplot(1,2,2);
+    plot(x, abs(ap_ft(512,:)));
 end
 
 function gaussian_beam_test()
@@ -167,14 +193,12 @@ end
 
 function plane = propagate(na, zf, L, M, lambda)
     arguments
-        na
-        zf
+        na %numerical aperture
+        zf %distance from focus
         L = 250e-3
         M = 1024
         lambda = 490e-6
     end
-    %na: numerical aperture
-    %af: distance from focus
     % Define frequency axes
     %global L M lambda;
     dx = L/M;
@@ -184,7 +208,8 @@ function plane = propagate(na, zf, L, M, lambda)
     fy=fx;
     [FX,FY] = meshgrid(fx,fy);
     %Assuming we have a circular aperture illuminated by a unit-amplitude
-    %plane wave, the fourier transform of the field is just: 
+    %plane wave, the fourier transform of the field is just a circ()
+    %function with radius NA/lambda (Goodman 6.2.2):
     fq_aperture = (FY.^2 + FX.^2) < (na/lambda)^2;
     %The Fresnel propagator is:
     H = fresnel_propagator(zf, L, M, lambda);
