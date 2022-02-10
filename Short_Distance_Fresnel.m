@@ -1,10 +1,15 @@
 % Built off a script from 7/15/20
 % Short Distance Fresnel Prop
 % Start with some amplitude distribution and propagate a short distance
-%include helper functions fresnel_propagator()
-addpath('./MATLAB_functions/');
+
+addpath('./MATLAB_functions/'); %include helper functions
 
 % Parameters; units mm
+bench_parameters = struct();
+bench_parameters.L = 250e-3;      %side length of input image
+bemch_parameters.lambda = 490e-6; %wavelength
+bench_parameters.M = 1024;        %samples
+bench_parameters.NA = 0.1;        %numerical aperture
 L = 250e-3; lambda = 490e-6; k = 2*pi/lambda; R = 5e-3;
 M = 1024; % samples
 NA = 0.1;
@@ -34,18 +39,18 @@ fy=fx;
 %Generate fields by Fresnel propagating constant amplitude,
 %circular aperture fields two different distances z1 & z2. 
 %using propagate(NA, z)
-p1 = propagate(0.1, 400e-3);
-p2 = propagate(0.1, 415e-3);
+p1 = propagate(0.1, 400e-3, L, M, lambda);
+p2 = propagate(0.1, 415e-3, L, M, lambda);
 interference = struct('field', p1.field + p2.field, 'x', p1.x, 'y', p1.y);
-% hfig = figure;
-% pos = get(hfig,'position');
-% set(hfig,'position',pos.*[.5 1 3 1]);
-% subplot(1,3,1)
-% plot_im(p1, "P1 (z=200um)")
-% subplot(1,3,2)
-% plot_im(p2, "P2 (z=220um)")
-% subplot(1,3,3)
-% plot_im(interference, "P1 + P2")
+hfig = figure;
+pos = get(hfig,'position');
+set(hfig,'position',pos.*[.5 1 3 1]);
+subplot(1,3,1)
+plot_im(p1, "P1 (z=200um)")
+subplot(1,3,2)
+plot_im(p2, "P2 (z=220um)")
+subplot(1,3,3)
+plot_im(interference, "P1 + P2")
 
 function a = rect(x)
     a = abs(x) <= .5;
@@ -64,11 +69,11 @@ end
 
 function plane_struct = propagate(na, zf, L, M, lambda)
     arguments
-        na %numerical aperture
-        zf %distance from focus
-        L = 250e-3
-        M = 1024
-        lambda = 490e-6
+        na              %numerical aperture
+        zf              %distance from focus (mm)
+        L = 250e-3      %length scale of input image (mm)
+        M = 1024        %number of samples
+        lambda = 490e-6 %wavelength (mm)
     end
     % Define frequency axes
     dx = L/M;
