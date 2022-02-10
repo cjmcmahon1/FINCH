@@ -27,17 +27,19 @@ fy=fx;
 %Generate fields by Fresnel propagating constant amplitude,
 %circular aperture fields two different distances z1 & z2. 
 %using propagate(z, parameters)
-p1 = propagate(400e-3, PARAMS);
-p2 = propagate(415e-3, PARAMS);
+z1 = 400e-3; %mm
+z2 = 415e-3; %mm
+p1 = propagate(z1, PARAMS);
+p2 = propagate(z2, PARAMS);
 %add the two fields together
 interference = struct('field', p1.field + p2.field, 'x', p1.x, 'y', p1.y);
 hfig = figure;
 pos = get(hfig,'position');
 set(hfig,'position',pos.*[.5 1 3 1]); %make plot window wider
 subplot(1,3,1)
-plot_im(p1, "P1 (z=200um)")
+plot_im(p1, sprintf('P1 (z=%3d um)', z1*1e3))
 subplot(1,3,2)
-plot_im(p2, "P2 (z=220um)")
+plot_im(p2, sprintf('P2 (z=%3d um)', z2*1e3))
 subplot(1,3,3)
 plot_im(interference, "P1 + P2")
 
@@ -73,6 +75,9 @@ function plane_struct = propagate(zf, bench_params)
     %This should probably be normalized in some way
     cutoff_freq = bench_params.NA / bench_params.lambda;
     fq_aperture = (FY.^2 + FX.^2) < (cutoff_freq^2);
+    norm = length(x); %normalize frequency by length of spatial vector
+    %not sure if the above is correct
+    fq_aperture = fq_aperture * norm;
     %The Fresnel propagator is:
     H = fresnel_propagator(zf, bench_params.L, ...
                            bench_params.M, bench_params.lambda);
