@@ -31,9 +31,9 @@ fy=fx;
 %circular aperture fields two different distances z1 & z2. 
 %using propagate(z, parameters)
 %the Brooker papers have z1~-10mm, z2~10mm
-z1 = -0.5; %mm
-z2 = 0.5; %mm
-z_back = -0.5; %mm
+z1 = -1; %mm
+z2 = 1; %mm
+z_back = -1; %mm
 p1 = propagate_init(z1, PARAMS);
 p2 = propagate_init(z2, PARAMS);
 %add the two fields together
@@ -104,16 +104,17 @@ function result = complex_hologram(plane, num_angles, bench_params)
         next_angle = mod(inc*(i+1), 2*pi);
         shifted_h = shifted_hologram(plane, inc*i, bench_params, 250e-3);
         phase = exp(1i * prev_angle) - exp(1i * next_angle);
-        h_sum = h_sum + shifted_h.field .* phase;
+        h_sum = h_sum + shifted_h.intensity .* phase;
     end
-    result = struct('field', h_sum, 'x', plane.x, 'y', plane.y);
+    result = struct('intensity', h_sum, 'x', plane.x, 'y', plane.y);
 end
 
 function result = shifted_hologram(plane, theta, bench_params, rh)
     %{
     Based on Brooker (2021) equation 2. Generate a real-valued hologram
-    with a given phase shift theta from an input interference image. We
-    assume the input image is of the form ~exp[i/z(x.^2 + y.^2)].
+    with a given phase shift theta from an input interference image i
+    ntensity. We assume the input image is of the form 
+    ~exp[i/z(x.^2 + y.^2)].
     %}
     arguments
         plane %interference plane we get from propagate()
@@ -122,10 +123,10 @@ function result = shifted_hologram(plane, theta, bench_params, rh)
         rh = 250e-3 %maximum radius of the hologram
     end
     P = pupil_func(rh, bench_params);
-    h1 = plane.field .* exp(1i * theta);
-    h2 = conj(plane.field) .* exp(-1i * theta);
-    field = P .* (2 + h1 + h2);
-    result = struct('field', field, 'x', plane.x, 'y', plane.y);
+    h1 = real(plane.field .* exp(1i * theta)).^2;
+    h2 = real(conj(plane.field) .* exp(-1i * theta)).^2;
+    intensity = P .* (2 + h1 + h2);
+    result = struct('intensity', intensity, 'x', plane.x, 'y', plane.y);
 end
 
 function plane = pupil_func(radius, bench_params)
@@ -153,7 +154,14 @@ function plane_struct = fresnel_prop(plane, zf, bench_params)
     H = fresnel_propagator(zf, bench_params.L, bench_params.M, ...
                            bench_params.lambda);
     % Propagate
-    ft = fft2(plane.field);
+    if isfield(plane, 'intensity')
+        im = plane.intensity;
+    elseif isfield(plane, 'field')
+        im = plane.field;
+    else
+        fprintf("Input must have a field or intensity argument.")
+    end
+    ft = fft2(im);
     proppedFt = ft .* fftshift(H);
     propped = ifft2(proppedFt);
     plane_struct = struct('field', propped, 'x', plane.x, 'y', plane.y);
