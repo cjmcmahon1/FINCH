@@ -115,6 +115,12 @@ end
 
 %Function Definitions
 function plane_struct = propagate(zf, bench_params)
+    %{
+    Propagate a constant amplitude plane wave through a circular aperture
+    a distance zf (mm). This is taken from Goodman 6.2.2 and is used as a
+    way to generate two test images to interfere and generate our FINCH
+    hologram.
+    %}
     arguments
         zf %distance from focus (mm)
         bench_params
