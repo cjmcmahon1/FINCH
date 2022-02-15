@@ -31,8 +31,8 @@ fy=fx;
 %circular aperture fields two different distances z1 & z2. 
 %using propagate(z, parameters)
 %the Brooker papers have z1~-10mm, z2~10mm
-z1 = -1; %mm
-z2 = 1; %mm
+z1 = -0.5; %mm
+z2 = 0.5; %mm
 z_back = -0.5; %mm
 p1 = propagate_init(z1, PARAMS);
 p2 = propagate_init(z2, PARAMS);
@@ -47,15 +47,7 @@ hol = complex_hologram(interference, 3, PARAMS);
 %fresnel propagate the complex hologram backwards
 %if this is equal to z1 or z2, then we should just see a point
 back_prop = fresnel_prop(hol, z_back, PARAMS);
-% hfig = figure;
-% pos = get(hfig,'position');
-% set(hfig,'position',pos.*[.5 1 3 1]); %make plot window wider
-% subplot(1,3,1)
-% plot_im(p1, sprintf('P1 (z=%3d um)', z1*1e3))
-% subplot(1,3,2)
-% plot_im(p2, sprintf('P2 (z=%3d um)', z2*1e3))
-% subplot(1,3,3)
-% plot_im(interference, "P1 + P2")
+
 hfig = figure;
 pos = get(hfig,'position');
 set(hfig,'position',pos.*[1 0.5 3 1.5]); %make plot window wider
@@ -72,6 +64,17 @@ plot_im(shifted2, "H2 (Theta = 2*pi/3)")
 subplot(2, 3, 6)
 plot_im(shifted3, "H3 (Theta = 4*pi/3)")
 
+%Other Plots
+% hfig = figure;
+% pos = get(hfig,'position');
+% set(hfig,'position',pos.*[.5 1 3 1]); %make plot window wider
+% subplot(1,3,1)
+% plot_im(p1, sprintf('P1 (z=%3d um)', z1*1e3))
+% subplot(1,3,2)
+% plot_im(p2, sprintf('P2 (z=%3d um)', z2*1e3))
+% subplot(1,3,3)
+% plot_im(interference, "P1 + P2")
+
 %Other sanity checks that our Fresnel propagator works correctly.
 
 %Check that gaussian beam area doubles when we propagate
@@ -85,13 +88,16 @@ plot_im(shifted3, "H3 (Theta = 4*pi/3)")
 
 %Function Definitions
 function result = complex_hologram(plane, num_angles, bench_params)
-    %Based on Brooker(2021) equation 2
+    %{
+    Based on Brooker(2021) equation 2.  Generate a complex-valued hologram
+    from a series of (num_angles) real-valued holograms.
+    %}
     arguments
         plane %interference plane we get from propagate()
         num_angles %>=3 subdivisions of 2*pi to apply differing phases
         bench_params
     end
-    inc = 2*pi / num_angles;
+    inc = 2*pi / num_angles; %we want (num_angles) evenly separated phases
     h_sum = zeros('like', plane.field);
     for i = 1:num_angles
         prev_angle = mod(inc*(i-1), 2*pi);
@@ -104,7 +110,11 @@ function result = complex_hologram(plane, num_angles, bench_params)
 end
 
 function result = shifted_hologram(plane, theta, bench_params, rh)
-    %Based on Brooker (2021) equation 2
+    %{
+    Based on Brooker (2021) equation 2. Generate a real-valued hologram
+    with a given phase shift theta from an input interference image. We
+    assume the input image is of the form ~exp[i/z(x.^2 + y.^2)].
+    %}
     arguments
         plane %interference plane we get from propagate()
         theta %artificial phase shift of the interference
@@ -119,6 +129,7 @@ function result = shifted_hologram(plane, theta, bench_params, rh)
 end
 
 function plane = pupil_func(radius, bench_params)
+    %pupil function in real space
     arguments
         radius %mm
         bench_params
