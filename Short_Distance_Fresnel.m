@@ -27,22 +27,28 @@ fy=fx;
 %Generate fields by Fresnel propagating constant amplitude,
 %circular aperture fields two different distances z1 & z2. 
 %using propagate(z, parameters)
-z1 = 400e-3; %mm
-z2 = 415e-3; %mm
+%the Brooker papers have z1~-10mm, z2~10mm
+z1 = -1; %mm
+z2 = 1; %mm
 p1 = propagate(z1, PARAMS);
 p2 = propagate(z2, PARAMS);
 %add the two fields together
 interference = struct('field', p1.field + p2.field, 'x', p1.x, 'y', p1.y);
-hfig = figure;
-pos = get(hfig,'position');
-set(hfig,'position',pos.*[.5 1 3 1]); %make plot window wider
-subplot(1,3,1)
-plot_im(p1, sprintf('P1 (z=%3d um)', z1*1e3))
-subplot(1,3,2)
-plot_im(p2, sprintf('P2 (z=%3d um)', z2*1e3))
-subplot(1,3,3)
-plot_im(interference, "P1 + P2")
+shifted1 = shifted_hologram(interference, 0 * pi / 3, PARAMS, 250e-3);
+% hfig = figure;
+% pos = get(hfig,'position');
+% set(hfig,'position',pos.*[.5 1 3 1]); %make plot window wider
+% subplot(1,3,1)
+% plot_im(p1, sprintf('P1 (z=%3d um)', z1*1e3))
+% subplot(1,3,2)
+% plot_im(p2, sprintf('P2 (z=%3d um)', z2*1e3))
+% subplot(1,3,3)
+% plot_im(interference, "P1 + P2")
 
+subplot(1, 2, 1)
+plot_im(interference, "P1 + P2")
+subplot(1, 2, 2)
+plot_im(shifted1, "Shifted Hologram 2pi/3")
 %Other sanity checks that our Fresnel propagator works correctly.
 
 %Check that gaussian beam area doubles when we propagate
@@ -53,6 +59,32 @@ plot_im(interference, "P1 + P2")
 %has its first zero as predicted by the bessel function on
 %Wikipedia.
 %bessel_function_test()
+
+function result = shifted_hologram(plane, theta, bench_params, rh)
+    arguments
+        plane %interference plane we get from propagate()
+        theta %artificial phase shift of the interference
+        bench_params
+        rh = 250e-3 %maximum radius of the hologram
+    end
+    P = pupil_func(rh, bench_params);
+    h1 = plane.field .* exp(1i * theta);
+    h2 = conj(plane.field) .* exp(-1i * theta);
+    field = P .* (2 + h1 + h2);
+    result = struct('field', field, 'x', plane.x, 'y', plane.y);
+end
+
+function plane = pupil_func(radius, bench_params)
+    arguments
+        radius %mm
+        bench_params
+    end
+    dx = bench_params.L/bench_params.M;
+    x = -bench_params.L/2:dx:bench_params.L/2-dx;
+    y = x;
+    [X,Y] = meshgrid(x,y);
+    plane = (X.^2 + Y.^2) <= radius^2;
+end
 
 %Function Definitions
 function plane_struct = propagate(zf, bench_params)
