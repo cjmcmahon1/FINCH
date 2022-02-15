@@ -35,6 +35,9 @@ p2 = propagate(z2, PARAMS);
 %add the two fields together
 interference = struct('field', p1.field + p2.field, 'x', p1.x, 'y', p1.y);
 shifted1 = shifted_hologram(interference, 0 * pi / 3, PARAMS, 250e-3);
+shifted2 = shifted_hologram(interference, 2 * pi / 3, PARAMS, 250e-3);
+shifted3 = shifted_hologram(interference, 4 * pi / 3, PARAMS, 250e-3);
+hol = complex_hologram(interference, 3, PARAMS);
 % hfig = figure;
 % pos = get(hfig,'position');
 % set(hfig,'position',pos.*[.5 1 3 1]); %make plot window wider
@@ -45,10 +48,14 @@ shifted1 = shifted_hologram(interference, 0 * pi / 3, PARAMS, 250e-3);
 % subplot(1,3,3)
 % plot_im(interference, "P1 + P2")
 
-subplot(1, 2, 1)
-plot_im(interference, "P1 + P2")
-subplot(1, 2, 2)
-plot_im(shifted1, "Shifted Hologram 2pi/3")
+subplot(2, 2, 1)
+plot_im(shifted1, "H1")
+subplot(2, 2, 2)
+plot_im(shifted2, "H2")
+subplot(2, 2, 3)
+plot_im(shifted3, "H3")
+subplot(2, 2, 4)
+plot_im(hol, "Total Hologram")
 %Other sanity checks that our Fresnel propagator works correctly.
 
 %Check that gaussian beam area doubles when we propagate
@@ -60,7 +67,27 @@ plot_im(shifted1, "Shifted Hologram 2pi/3")
 %Wikipedia.
 %bessel_function_test()
 
+function result = complex_hologram(plane, num_angles, bench_params)
+    %Based on Brooker(2021) equation 2
+    arguments
+        plane %interference plane we get from propagate()
+        num_angles %>=3 subdivisions of 2*pi to apply differing phases
+        bench_params
+    end
+    inc = 2*pi / num_angles;
+    h_sum = zeros('like', plane.field);
+    for i = 1:num_angles
+        prev_angle = mod(inc*(i-1), 2*pi);
+        next_angle = mod(inc*(i+1), 2*pi);
+        shifted_h = shifted_hologram(plane, inc*i, bench_params, 250e-3);
+        phase = exp(1i * prev_angle) - exp(1i * next_angle);
+        h_sum = h_sum + shifted_h.field .* phase;
+    end
+    result = struct('field', h_sum, 'x', plane.x, 'y', plane.y);
+end
+
 function result = shifted_hologram(plane, theta, bench_params, rh)
+    %Based on Brooker (2021) equation 2
     arguments
         plane %interference plane we get from propagate()
         theta %artificial phase shift of the interference
