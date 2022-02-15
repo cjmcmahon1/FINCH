@@ -1,14 +1,17 @@
 % Built off a script from 7/15/20
 % Short Distance Fresnel Prop
 % Start with some amplitude distribution and propagate a short distance
-
+%{
+TODO:
+Normalize FT in propagate() properly
+%}
 addpath('./MATLAB_functions/'); %include helper functions
 
 % Parameters; units mm
 PARAMS = struct;
 PARAMS.L = 250e-3;      %side length of input image
 PARAMS.lambda = 490e-6; %wavelength
-PARAMS.M = 1024;        %samples
+PARAMS.M = 2048;        %samples
 PARAMS.NA = 0.1;        %numerical aperture
 
 % Define spatial axes (unused)
@@ -30,14 +33,20 @@ fy=fx;
 %the Brooker papers have z1~-10mm, z2~10mm
 z1 = -1; %mm
 z2 = 1; %mm
-p1 = propagate(z1, PARAMS);
-p2 = propagate(z2, PARAMS);
+z_back = -0.5; %mm
+p1 = propagate_init(z1, PARAMS);
+p2 = propagate_init(z2, PARAMS);
 %add the two fields together
 interference = struct('field', p1.field + p2.field, 'x', p1.x, 'y', p1.y);
+%create phase shifted holograms for plotting
 shifted1 = shifted_hologram(interference, 0 * pi / 3, PARAMS, 250e-3);
 shifted2 = shifted_hologram(interference, 2 * pi / 3, PARAMS, 250e-3);
 shifted3 = shifted_hologram(interference, 4 * pi / 3, PARAMS, 250e-3);
+%generate the complex-valued hologram
 hol = complex_hologram(interference, 3, PARAMS);
+%fresnel propagate the complex hologram backwards
+%if this is equal to z1 or z2, then we should just see a point
+back_prop = fresnel_prop(hol, z_back, PARAMS);
 % hfig = figure;
 % pos = get(hfig,'position');
 % set(hfig,'position',pos.*[.5 1 3 1]); %make plot window wider
@@ -47,15 +56,22 @@ hol = complex_hologram(interference, 3, PARAMS);
 % plot_im(p2, sprintf('P2 (z=%3d um)', z2*1e3))
 % subplot(1,3,3)
 % plot_im(interference, "P1 + P2")
-
-subplot(2, 2, 1)
-plot_im(shifted1, "H1")
-subplot(2, 2, 2)
-plot_im(shifted2, "H2")
-subplot(2, 2, 3)
-plot_im(shifted3, "H3")
-subplot(2, 2, 4)
+hfig = figure;
+pos = get(hfig,'position');
+set(hfig,'position',pos.*[1 0.5 3 1.5]); %make plot window wider
+subplot(2, 3, 1)
+plot_im(interference, "P1 + P2")
+subplot(2, 3, 2)
 plot_im(hol, "Total Hologram")
+subplot(2, 3, 3)
+plot_im(back_prop, sprintf('Propagated Hologram (z=%3d um)', z_back*1e3))
+subplot(2, 3, 4)
+plot_im(shifted1, "H1 (Theta = 0)")
+subplot(2, 3, 5)
+plot_im(shifted2, "H2 (Theta = 2*pi/3)")
+subplot(2, 3, 6)
+plot_im(shifted3, "H3 (Theta = 4*pi/3)")
+
 %Other sanity checks that our Fresnel propagator works correctly.
 
 %Check that gaussian beam area doubles when we propagate
@@ -67,6 +83,7 @@ plot_im(hol, "Total Hologram")
 %Wikipedia.
 %bessel_function_test()
 
+%Function Definitions
 function result = complex_hologram(plane, num_angles, bench_params)
     %Based on Brooker(2021) equation 2
     arguments
@@ -113,42 +130,20 @@ function plane = pupil_func(radius, bench_params)
     plane = (X.^2 + Y.^2) <= radius^2;
 end
 
-%Function Definitions
-function plane_struct = propagate(zf, bench_params)
+function plane_struct = fresnel_prop(plane, zf, bench_params)
     %{
-    Propagate a constant amplitude plane wave through a circular aperture
-    a distance zf (mm). This is taken from Goodman 6.2.2 and is used as a
-    way to generate two test images to interfere and generate our FINCH
-    hologram.
+    Propagate an image (assumed to start in real space) a distance zf.
     %}
     arguments
-        zf %distance from focus (mm)
+        plane
+        zf
         bench_params
     end
-    % Define frequency axes
-    dx = bench_params.L/bench_params.M;
-    x = -bench_params.L/2:dx:bench_params.L/2-dx;
-    y = x;
-    fMax = 1/(2*dx);
-    df = 1/bench_params.L;
-    fx = -fMax:df:fMax-df;
-    fy=fx;
-    [FX,FY] = meshgrid(fx,fy);
-    %Assuming we have a circular aperture illuminated by a unit-amplitude
-    %plane wave, the fourier transform of the field is just a circ()
-    %function with radius NA/lambda (Goodman 6.2.2):
-    %This should probably be normalized in some way
-    cutoff_freq = bench_params.NA / bench_params.lambda;
-    fq_aperture = (FY.^2 + FX.^2) < (cutoff_freq^2);
-    norm = length(x); %normalize frequency by length of spatial vector
-    %not sure if the above is correct
-    fq_aperture = fq_aperture * norm;
-    %The Fresnel propagator is:
-    H = fresnel_propagator(zf, bench_params.L, ...
-                           bench_params.M, bench_params.lambda);
-    %To propagate, we just multiply
-    proppedFt = fftshift(fq_aperture .* H);
-    plane = ifftshift(ifft2(proppedFt));
-    %return struct so we can plot with correct x & y axis
-    plane_struct = struct('field', plane, 'x', x, 'y', y);
+    H = fresnel_propagator(zf, bench_params.L, bench_params.M, ...
+                           bench_params.lambda);
+    % Propagate
+    ft = fft2(plane.field);
+    proppedFt = ft .* fftshift(H);
+    propped = ifft2(proppedFt);
+    plane_struct = struct('field', propped, 'x', plane.x, 'y', plane.y);
 end
