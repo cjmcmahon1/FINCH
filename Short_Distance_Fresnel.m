@@ -46,23 +46,24 @@ shifted3 = shifted_hologram(interference, 4 * pi / 3, PARAMS, 250e-3);
 hol = complex_hologram(interference, 3, PARAMS);
 %fresnel propagate the complex hologram backwards
 %if this is equal to z1 or z2, then we should just see a point
-back_prop = fresnel_prop(hol, z_back, PARAMS);
+back_plane = fresnel_prop(hol.intensity, z_back, PARAMS);
+back_prop = struct('field', back_plane, 'x', hol.x, 'y', hol.y);
 
 hfig = figure;
 pos = get(hfig,'position');
 set(hfig,'position',pos.*[1 0.5 3 1.5]); %make plot window wider
 subplot(2, 3, 1)
-plot_im(interference, "P1 + P2")
+plot_im(interference, "abs(P1 + P2)^2")
 subplot(2, 3, 2)
-plot_im(hol, "Total Hologram")
+plot_im(hol, "abs(Complex Hologram)")
 subplot(2, 3, 3)
 plot_im(back_prop, sprintf('Propagated Hologram (z=%3d um)', z_back*1e3))
 subplot(2, 3, 4)
-plot_im(shifted1, "H1 (Theta = 0)")
+plot_im(shifted1, "abs(H1) (Theta = 0)")
 subplot(2, 3, 5)
-plot_im(shifted2, "H2 (Theta = 2*pi/3)")
+plot_im(shifted2, "abs(H2) (Theta = 2*pi/3)")
 subplot(2, 3, 6)
-plot_im(shifted3, "H3 (Theta = 4*pi/3)")
+plot_im(shifted3, "abs(H3) (Theta = 4*pi/3)")
 
 %Other Plots
 % hfig = figure;
@@ -123,8 +124,8 @@ function result = shifted_hologram(plane, theta, bench_params, rh)
         rh = 250e-3 %maximum radius of the hologram
     end
     P = pupil_func(rh, bench_params);
-    h1 = real(plane.field .* exp(1i * theta)).^2;
-    h2 = real(conj(plane.field) .* exp(-1i * theta)).^2;
+    h1 = plane.field .* exp(1i * theta);
+    h2 = conj(plane.field) .* exp(-1i * theta);
     intensity = P .* (2 + h1 + h2);
     result = struct('intensity', intensity, 'x', plane.x, 'y', plane.y);
 end
@@ -142,27 +143,19 @@ function plane = pupil_func(radius, bench_params)
     plane = (X.^2 + Y.^2) <= radius^2;
 end
 
-function plane_struct = fresnel_prop(plane, zf, bench_params)
+function propped = fresnel_prop(im, zf, bench_params)
     %{
     Propagate an image (assumed to start in real space) a distance zf.
     %}
     arguments
-        plane
+        im %array that we want to propagate
         zf
         bench_params
     end
     H = fresnel_propagator(zf, bench_params.L, bench_params.M, ...
                            bench_params.lambda);
     % Propagate
-    if isfield(plane, 'intensity')
-        im = plane.intensity;
-    elseif isfield(plane, 'field')
-        im = plane.field;
-    else
-        fprintf("Input must have a field or intensity argument.")
-    end
     ft = fft2(im);
     proppedFt = ft .* fftshift(H);
     propped = ifft2(proppedFt);
-    plane_struct = struct('field', propped, 'x', plane.x, 'y', plane.y);
 end
