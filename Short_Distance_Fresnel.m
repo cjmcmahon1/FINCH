@@ -51,21 +51,34 @@ back_plane = fresnel_prop(hol.intensity, z_back, PARAMS);
 forward_plane = fresnel_prop(hol.intensity, z_forward, PARAMS);
 back_prop = struct('intensity', back_plane, 'x', hol.x, 'y', hol.y);
 forward_prop = struct('intensity', forward_plane, 'x', hol.x, 'y', hol.y);
+
 hfig = figure;
 pos = get(hfig,'position');
-set(hfig,'position',pos.*[1 0.5 3 1.5]); %make plot window wider
-subplot(2, 3, 1)
-plot_im(interference, "abs(P1 + P2)^2")
-subplot(2, 3, 2)
-plot_im(hol, "abs(Complex Hologram)")
-subplot(2, 3, 3)
-plot_im(back_prop, sprintf('Propagated Hologram (z=%3d um)', z_back*1e3))
-subplot(2, 3, 4)
-plot_im(shifted1, "abs(H1) (Theta = 0)")
-subplot(2, 3, 5)
-plot_im(shifted2, "abs(H2) (Theta = 2*pi/3)")
-subplot(2, 3, 6)
-plot_im(shifted3, "abs(H3) (Theta = 4*pi/3)")
+set(hfig,'position',pos.*[0.25 0.25 2.5 1.9]); %make plot window wider
+subplot(3, 3, 1)
+p1_label = sprintf("P1 Intensity Plot (z1=%3d um)", z1*1e3);
+plot_im(p1, p1_label)
+subplot(3, 3, 2)
+p2_label = sprintf("P2 Intensity Plot (z2=%3d um)", z2*1e3);
+plot_im(p2, p2_label)
+subplot(3, 3, 3)
+plot_im(interference, "P1 + P2 Intensity")
+subplot(3, 3, 4)
+plot_im(hol, "Re(Complex Hologram)", 'real')
+subplot(3, 3, 5)
+plot_im(hol, "Im(Complex Hologram)", 'imag')
+subplot(3, 3, 6)
+plot_im(hol, "Abs(Complex Hologram)", 'intensity')
+subplot(3, 3, 7)
+b_prop_label_re = sprintf('Re(Fresnel Propagated z=%3d um)', z_back*1e3);
+plot_im(back_prop, b_prop_label_re, 'real')
+subplot(3, 3, 8)
+b_prop_label_im = sprintf('Im(Fresnel Propagated z=%3d um)', z_back*1e3);
+plot_im(back_prop, b_prop_label_im, 'imag')
+subplot(3, 3, 9)
+b_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z_back*1e3);
+plot_im(back_prop, b_prop_label, 'intensity')
+
 
 %Other Plots
 % hfig = figure;
@@ -77,6 +90,10 @@ plot_im(shifted3, "abs(H3) (Theta = 4*pi/3)")
 % plot_im(p2, sprintf('P2 (z=%3d um)', z2*1e3))
 % subplot(1,3,3)
 % plot_im(interference, "P1 + P2")
+% subplot(2, 3, 5)
+% plot_im(shifted2, "abs(H2) (Theta = 2*pi/3)")
+% subplot(2, 3, 6)
+% plot_im(shifted3, "abs(H3) (Theta = 4*pi/3)")
 
 %Other sanity checks that our Fresnel propagator works correctly.
 
