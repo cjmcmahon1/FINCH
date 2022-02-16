@@ -34,6 +34,7 @@ fy=fx;
 z1 = -1; %mm
 z2 = 1; %mm
 z_back = -1; %mm
+z_forward = 1; %mm
 p1 = propagate_init(z1, PARAMS);
 p2 = propagate_init(z2, PARAMS);
 %add the two fields together
@@ -47,8 +48,9 @@ hol = complex_hologram(interference, 3, PARAMS);
 %fresnel propagate the complex hologram backwards
 %if this is equal to z1 or z2, then we should just see a point
 back_plane = fresnel_prop(hol.intensity, z_back, PARAMS);
-back_prop = struct('field', back_plane, 'x', hol.x, 'y', hol.y);
-
+forward_plane = fresnel_prop(hol.intensity, z_forward, PARAMS);
+back_prop = struct('intensity', back_plane, 'x', hol.x, 'y', hol.y);
+forward_prop = struct('intensity', forward_plane, 'x', hol.x, 'y', hol.y);
 hfig = figure;
 pos = get(hfig,'position');
 set(hfig,'position',pos.*[1 0.5 3 1.5]); %make plot window wider
