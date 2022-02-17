@@ -77,7 +77,7 @@ b_prop_label_im = sprintf('Im(Fresnel Propagated z=%3d um)', z_back*1e3);
 plot_im(back_prop, b_prop_label_im, 'imag')
 subplot(3, 3, 9)
 b_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z_back*1e3);
-plot_im(back_prop, b_prop_label, 'intensity')
+plot_im(zoom(back_prop), b_prop_label, 'intensity')
 
 
 %Other Plots
@@ -107,3 +107,23 @@ plot_im(back_prop, b_prop_label, 'intensity')
 %bessel_function_test()
 
 %Function Definitions are in ./MATLAB_FUNCTIONS
+function plane = zoom(image_struct)
+    if isfield(image_struct, 'intensity')
+        field_type = 'intensity';
+    elseif isfield(image_struct, 'field')
+        field_type = 'field';
+    else
+        fprintf("Struct did not have an 'intensity' or 'field' field");
+    end
+    midpt = idivide(size(image_struct.(field_type)), 2);
+    buffer = idivide(size(image_struct.(field_type)), 50);
+    scan = image_struct.(field_type)(midpt);
+    threshold = max(scan) / 25;
+    first = find(scan > threshold, 1, "first") - buffer;
+    last = find(scan > threshold, 1, "last") + buffer;
+    new_field = image_struct.(field_type)(first:last, first:last);
+    new_x = image_struct.x(first:last);
+    new_y = new_x;
+    plane = struct(field_type, new_field, 'x', new_x, 'y', new_y);
+end
+    
