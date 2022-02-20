@@ -38,53 +38,49 @@ z1 = -1; %mm
 z2 = 1; %mm
 z_back = -1; %mm
 z_forward = 1; %mm
-% p1 = propagate_init(z1, PARAMS);
-% p2 = propagate_init(z2, PARAMS);
-% %add the two fields together
-% interference = struct('field', p1.field + p2.field, 'x', p1.x, 'y', p1.y);
-% %create phase shifted holograms for plotting
-% shifted1 = shifted_hologram(interference, 0 * pi / 3, PARAMS, 250e-3);
-% shifted2 = shifted_hologram(interference, 2 * pi / 3, PARAMS, 250e-3);
-% shifted3 = shifted_hologram(interference, 4 * pi / 3, PARAMS, 250e-3);
-% %generate the complex-valued hologram
-% hol = complex_hologram(interference, 3, PARAMS);
-% %fresnel propagate the complex hologram backwards
-% %if this is equal to z1 or z2, then we should just see a point
-% back_plane = fresnel_prop(hol.intensity, z_back, PARAMS);
-% forward_plane = fresnel_prop(hol.intensity, z_forward, PARAMS);
-% back_prop = struct('intensity', back_plane, 'x', hol.x, 'y', hol.y);
-% forward_prop = struct('intensity', forward_plane, 'x', hol.x, 'y', hol.y);
-% 
-% hfig = figure;
-% pos = get(hfig,'position');
-% set(hfig,'position',pos.*[0.25 0.25 2.5 1.9]); %make plot window wider
-% subplot(3, 3, 1)
-% p1_label = sprintf("P1 Intensity Plot (z1=%3d um)", z1*1e3);
-% plot_im(p1, p1_label)
-% subplot(3, 3, 2)
-% p2_label = sprintf("P2 Intensity Plot (z2=%3d um)", z2*1e3);
-% plot_im(p2, p2_label)
-% subplot(3, 3, 3)
-% plot_im(interference, "P1 + P2 Intensity")
-% subplot(3, 3, 4)
-% plot_im(hol, "Re(Complex Hologram)", 'real')
-% subplot(3, 3, 5)
-% plot_im(hol, "Im(Complex Hologram)", 'imag')
-% subplot(3, 3, 6)
-% plot_im(hol, "Abs(Complex Hologram)", 'intensity')
-% subplot(3, 3, 7)
-% b_prop_label_re = sprintf('Re(Fresnel Propagated z=%3d um)', z_back*1e3);
-% plot_im(back_prop, b_prop_label_re, 'real')
-% subplot(3, 3, 8)
-% b_prop_label_im = sprintf('Im(Fresnel Propagated z=%3d um)', z_back*1e3);
-% plot_im(back_prop, b_prop_label_im, 'imag')
-% subplot(3, 3, 9)
-% b_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z_back*1e3);
-% plot_im(back_prop, b_prop_label, 'intensity')
+p1 = propagate_init(z1, PARAMS);
+p2 = propagate_init(z2, PARAMS);
+%add the two fields together
+interference = struct('field', p1.field + p2.field, 'x', p1.x, 'y', p1.y);
+%create phase shifted holograms for plotting
+shifted1 = shifted_hologram(interference, 0 * pi / 3, PARAMS, 250e-3);
+shifted2 = shifted_hologram(interference, 2 * pi / 3, PARAMS, 250e-3);
+shifted3 = shifted_hologram(interference, 4 * pi / 3, PARAMS, 250e-3);
+%generate the complex-valued hologram
+hol = complex_hologram(interference, 3, PARAMS);
+%fresnel propagate the complex hologram backwards
+%if this is equal to z1 or z2, then we should just see a point
+back_plane = fresnel_prop(hol.intensity, z_back, PARAMS);
+forward_plane = fresnel_prop(hol.intensity, z_forward, PARAMS);
+back_prop = struct('intensity', back_plane, 'x', hol.x, 'y', hol.y);
+forward_prop = struct('intensity', forward_plane, 'x', hol.x, 'y', hol.y);
 
-test = imread("./Images/Bench_Images/0deg.png");
-test_fft = fft2(test);
-imagesc(test);
+hfig = figure;
+pos = get(hfig,'position');
+set(hfig,'position',pos.*[0.25 0.25 2.5 1.9]); %make plot window wider
+subplot(3, 3, 1)
+p1_label = sprintf("P1 Intensity Plot (z1=%3d um)", z1*1e3);
+plot_im(p1, p1_label)
+subplot(3, 3, 2)
+p2_label = sprintf("P2 Intensity Plot (z2=%3d um)", z2*1e3);
+plot_im(p2, p2_label)
+subplot(3, 3, 3)
+plot_im(interference, "P1 + P2 Intensity")
+subplot(3, 3, 4)
+plot_im(hol, "Re(Complex Hologram)", 'real')
+subplot(3, 3, 5)
+plot_im(hol, "Im(Complex Hologram)", 'imag')
+subplot(3, 3, 6)
+plot_im(hol, "Abs(Complex Hologram)", 'intensity')
+subplot(3, 3, 7)
+b_prop_label_re = sprintf('Re(Fresnel Propagated z=%3d um)', z_back*1e3);
+plot_im(back_prop, b_prop_label_re, 'real')
+subplot(3, 3, 8)
+b_prop_label_im = sprintf('Im(Fresnel Propagated z=%3d um)', z_back*1e3);
+plot_im(back_prop, b_prop_label_im, 'imag')
+subplot(3, 3, 9)
+b_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z_back*1e3);
+plot_im(back_prop, b_prop_label, 'intensity')
 
 %Other Plots
 % hfig = figure;
