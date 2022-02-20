@@ -9,20 +9,23 @@ addpath('./MATLAB_functions/'); %include helper functions
 
 % Parameters; units mm
 PARAMS = struct;
-PARAMS.L = 250e-3;      %side length of input image
+PARAMS.Lx = 250e-3;      %x side length of input image
+PARAMS.Ly = 250e-3;      %y side length of input image
 PARAMS.lambda = 490e-6; %wavelength
-PARAMS.M = 2048;        %samples
+PARAMS.Mx = 2048;        %x samples
+PARAMS.My = 2048;        %y samples
 PARAMS.NA = 0.1;        %numerical aperture
 
 % Define spatial axes (unused)
-dx = PARAMS.L/PARAMS.M;
-x = -PARAMS.L/2:dx:PARAMS.L/2-dx;
-y = x;
+dx = PARAMS.Lx/PARAMS.Mx;
+x = -PARAMS.Lx/2:dx:PARAMS.Lx/2-dx;
+dy = PARAMS.Ly/PARAMS.My;
+y = -PARAMS.Ly/2:dy:PARAMS.Ly/2-dy;
 [X,Y] = meshgrid(x,y);
 
 % Define frequency axes (unused)
 fMax = 1/(2*dx);
-df = 1/PARAMS.L;
+df = 1/PARAMS.Lx;
 fx = -fMax:df:fMax-df;
 fy=fx;
 [FX,FY] = meshgrid(fx,fy);
@@ -81,7 +84,7 @@ z_forward = 1; %mm
 
 test = imread("./Images/Bench_Images/0deg.png");
 test_fft = fft2(test);
-imagesc();
+imagesc(test);
 
 %Other Plots
 % hfig = figure;
