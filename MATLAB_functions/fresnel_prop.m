@@ -7,8 +7,9 @@ function propped = fresnel_prop(im, zf, bench_params)
         zf
         bench_params
     end
-    H = fresnel_propagator(zf, bench_params.L, bench_params.M, ...
-                           bench_params.lambda);
+    H = fresnel_propagator(zf, bench_params.Lx, bench_params.Mx, ...
+                            bench_params.Ly, bench_params.My, ...
+                            bench_params.lambda);
     % Propagate
     ft = fft2(im);
     proppedFt = ft .* fftshift(H);
