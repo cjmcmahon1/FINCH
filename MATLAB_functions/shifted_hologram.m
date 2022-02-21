@@ -11,9 +11,16 @@ function result = shifted_hologram(plane, theta, bench_params, rh)
         bench_params
         rh = 250e-3 %maximum radius of the hologram
     end
+    if isfield(plane, 'intensity')
+        field_type = 'intensity';
+    elseif isfield(plane, 'field')
+        field_type = 'field';
+    else
+        fprintf("Struct did not have an 'intensity' or 'field' field");
+    end
     P = pupil_func(rh, bench_params);
-    h1 = plane.field .* exp(1i * theta);
-    h2 = conj(plane.field) .* exp(-1i * theta);
+    h1 = plane.(field_type) .* exp(1i * theta);
+    h2 = conj(plane.(field_type)) .* exp(-1i * theta);
     intensity = P .* (2 + h1 + h2);
     result = struct('intensity', intensity, 'x', plane.x, 'y', plane.y);
 end
@@ -24,9 +31,10 @@ function plane = pupil_func(radius, bench_params)
         radius %mm
         bench_params
     end
-    dx = bench_params.L/bench_params.M;
-    x = -bench_params.L/2:dx:bench_params.L/2-dx;
-    y = x;
+    dx = bench_params.Lx/bench_params.Mx;
+    x = -bench_params.Lx/2:dx:bench_params.Lx/2-dx;
+    dy = bench_params.Ly/bench_params.My;
+    y = -bench_params.Ly/2:dy:bench_params.Ly/2-dy;
     [X,Y] = meshgrid(x,y);
     plane = (X.^2 + Y.^2) <= radius^2;
 end

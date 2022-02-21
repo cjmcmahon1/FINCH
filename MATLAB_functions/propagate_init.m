@@ -12,13 +12,16 @@ function plane_struct = propagate_init(zf, bench_params)
         bench_params
     end
     % Define frequency axes
-    dx = bench_params.L/bench_params.M;
-    x = -bench_params.L/2:dx:bench_params.L/2-dx;
-    y = x;
-    fMax = 1/(2*dx);
-    df = 1/bench_params.L;
-    fx = -fMax:df:fMax-df;
-    fy=fx;
+    dx = bench_params.Lx/bench_params.Mx;
+    x = -bench_params.Lx/2:dx:bench_params.Lx/2-dx;
+    dy = bench_params.Ly/bench_params.My;
+    y = -bench_params.Ly/2:dy:bench_params.Ly/2-dy;
+    fMax_x = 1/(2*dx);
+    fMax_y = 1/(2*dy);
+    df_x = 1/bench_params.Lx;
+    fx = -fMax_x:df_x:fMax_x-df_x;
+    df_y = 1/bench_params.Ly;
+    fy = -fMax_y:df_y:fMax_y-df_y;
     [FX,FY] = meshgrid(fx,fy);
     %Assuming we have a circular aperture illuminated by a unit-amplitude
     %plane wave, the fourier transform of the field is just a circ()
@@ -30,8 +33,9 @@ function plane_struct = propagate_init(zf, bench_params)
     %not sure if the above is correct
     fq_aperture = fq_aperture * norm;
     %The Fresnel propagator is:
-    H = fresnel_propagator(zf, bench_params.L, ...
-                           bench_params.M, bench_params.lambda);
+    H = fresnel_propagator(zf, bench_params.Lx, bench_params.Mx, ...
+                           bench_params.Ly, bench_params.My, ...
+                           bench_params.lambda);
     %To propagate, we just multiply
     proppedFt = fftshift(fq_aperture .* H);
     plane = ifftshift(ifft2(proppedFt));
