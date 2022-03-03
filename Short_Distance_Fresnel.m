@@ -5,7 +5,7 @@
 TODO:
 Normalize FT in propagate() properly
 %}
-addpath('./MATLAB_functions/'); %include helper functions
+addpath('../MATLAB_functions/'); %include helper functions
 
 % Parameters; units mm
 PARAMS = struct;
@@ -80,7 +80,7 @@ b_prop_label_im = sprintf('Im(Fresnel Propagated z=%3d um)', z_back*1e3);
 plot_im(back_prop, b_prop_label_im, 'imag')
 subplot(3, 3, 9)
 b_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z_back*1e3);
-plot_im(back_prop, b_prop_label, 'intensity')
+plot_im(back_prop, b_prop_label, 'intensity', [0 1])
 
 function plane_struct = FT(image_struct)
     if isfield(image_struct, 'intensity')
