@@ -127,11 +127,6 @@ end
 %by the Rayleigh distance.
 %gaussian_beam_test()
 
-%Check that first bessel function result (Goodman 4.4.2)
-%has its first zero as predicted by the bessel function on
-%Wikipedia.
-%bessel_function_test()
-
 %Function Definitions are in ./MATLAB_FUNCTIONS
 function plane = zoom(image_struct)
     if isfield(image_struct, 'intensity')
