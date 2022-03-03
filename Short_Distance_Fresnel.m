@@ -82,6 +82,30 @@ subplot(3, 3, 9)
 b_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z_back*1e3);
 plot_im(back_prop, b_prop_label, 'intensity')
 
+function plane_struct = FT(image_struct)
+    if isfield(image_struct, 'intensity')
+        field_type = 'intensity';
+    elseif isfield(image_struct, 'field')
+        field_type = 'field';
+    else
+        fprintf("Struct did not have an 'intensity' or 'field' field");
+    end
+    ft = fft2(image_struct.(field_type));
+    %get correct frequency axis
+    % Define spatial axes (unused)
+    dx = image_struct.x(2) - image_struct.x(1);
+    dy = image_struct.y(2) - image_struct.y(1);
+    lx = image_struct.x(-1) - image_struct.x(1);
+    ly = image_struct.y(-1) - image_struct.y(1);
+    % Define frequency axes (unused)
+    fMax_x = 1/(2*dx);
+    fMax_y = 1/(2*dy);
+    df_x = 1/lx;
+    df_y = 1/ly;
+    fx = -fMax_x:df_x:fMax_x-df_x;
+    fy = -fMax_y:df_y:fMax_y-df_y;
+end
+
 %Other Plots
 % hfig = figure;
 % pos = get(hfig,'position');

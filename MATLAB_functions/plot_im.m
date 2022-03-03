@@ -1,4 +1,4 @@
-function plot_im(image_struct, label, type)
+function plot_im(image_struct, label, type, cax)
     %{
     Quick function to plot a square B&W intensity plot. Supports plotting
     of structures with 'field' or 'intensity' argument. image_struct must
@@ -9,7 +9,8 @@ function plot_im(image_struct, label, type)
     arguments
         image_struct %struct with an intensity plot
         label %title for the plot
-        type = 'intensity'
+        type = 'intensity' 
+        cax = 'auto' %limits for the colorbar (form is [min max])
     end
     if isfield(image_struct, 'intensity')
         field_type = 'intensity';
@@ -27,14 +28,15 @@ function plot_im(image_struct, label, type)
     elseif strcmp(type,'imag')
         plot_param = imag(image_struct.(field_type));
     else
-        fprintf("Did not recognize plot type. Must be 'intensity', 'real," + ...
-                "or 'imag'.");
+        fprintf("Did not recognize plot type. Must be 'intensity', " + ...
+            "'real, or 'imag'.");
     end
     imagesc(image_struct.x*1e3, image_struct.y*1e3, ...
         plot_param);
     title(label);
     axis('square');
     colormap('gray');
+    caxis(cax);
     xlabel("x (um)");
     ylabel("y (um)");
     colorbar();
