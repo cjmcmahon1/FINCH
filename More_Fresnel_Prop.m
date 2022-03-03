@@ -9,6 +9,7 @@ propagation distances
 propagating
 -Make the intensity axis consistent for different images for easier
 comparison
+-add images to README for reference
 %}
 addpath('./MATLAB_functions/'); %include helper functions
 
@@ -54,8 +55,8 @@ back_comparison = struct('field', ...
 %Forward propagation should look like z1=0, z2=2mm
 fwd_comp_plane1 = propagate_init(0, PARAMS);
 fwd_comp_plane2 = propagate_init(2, PARAMS);
-fwd_comparison = struct('field', ...
-    fwd_comp_plane1.field + fwd_comp_plane2.field, ...
+fwd_comparison = struct('intensity', ...
+    abs(fwd_comp_plane1.field^2) + abs(fwd_comp_plane2.field^2), ...
     'x', fwd_comp_plane1.x, 'y', fwd_comp_plane1.y);
 
 hfig = figure;
@@ -63,13 +64,13 @@ pos = get(hfig,'position');
 set(hfig,'position',pos.*[0.25 0.25 2.5 1.9]); %make plot window wider
 subplot(2, 2, 1)
 b_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z_back*1e3);
-plot_im(back_prop, b_prop_label, 'intensity')
+plot_im(back_prop, b_prop_label, 'intensity', [0 1])
 subplot(2, 2, 2)
 b_comp_label = sprintf('Intensity of P1 + P2 at P1');
-plot_im(back_comparison, b_comp_label, 'intensity')
+plot_im(back_comparison, b_comp_label, 'intensity', [0 1])
 subplot(2, 2, 3)
 f_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z_forward*1e3);
-plot_im(forward_prop, f_prop_label, 'intensity')
+plot_im(forward_prop, f_prop_label, 'intensity', [0 1])
 subplot(2, 2, 4)
 f_comp_label = sprintf('Intensity of P1 + P2 at P2');
-plot_im(fwd_comparison, f_comp_label, 'intensity')
+plot_im(fwd_comparison, f_comp_label, 'intensity', [0 1])

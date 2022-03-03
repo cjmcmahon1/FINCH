@@ -19,6 +19,15 @@ function plot_im(image_struct, label, type, cax)
     else
         fprintf("Struct did not have an 'intensity' or 'field' field");
     end
+    if isfield(image_struct, 'x')
+        ax_x = 'x';
+        ax_y = 'y';
+    elseif isfield(image_struct, 'fx')
+        ax_x = 'fx';
+        ax_y = 'fy';
+    else
+        fprintf("Struct did not have an 'x' or 'fx' field");
+    end
     if strcmp(type,'intensity') && strcmp(field_type,'intensity')
         plot_param = abs(image_struct.(field_type));
     elseif strcmp(type,'intensity') && strcmp(field_type,'field')
@@ -31,13 +40,18 @@ function plot_im(image_struct, label, type, cax)
         fprintf("Did not recognize plot type. Must be 'intensity', " + ...
             "'real, or 'imag'.");
     end
-    imagesc(image_struct.x*1e3, image_struct.y*1e3, ...
+    imagesc(image_struct.(ax_x), image_struct.(ax_y), ...
         plot_param);
     title(label);
     axis('square');
     colormap('gray');
     caxis(cax);
-    xlabel("x (um)");
-    ylabel("y (um)");
+    if strcmp(ax_x, 'x')
+        xlabel("x (mm)");
+        ylabel("y (mm)");
+    elseif strcmp(ax_x, 'fx')
+        xlabel("x (mm^-1)");
+        ylabel("y (mm^-1)");
+    end
     colorbar();
 end

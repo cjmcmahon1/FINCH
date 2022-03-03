@@ -5,7 +5,7 @@
 TODO:
 Normalize FT in propagate() properly
 %}
-addpath('../MATLAB_functions/'); %include helper functions
+addpath('./MATLAB_functions/'); %include helper functions
 
 % Parameters; units mm
 PARAMS = struct;
@@ -55,32 +55,34 @@ forward_plane = fresnel_prop(hol.intensity, z_forward, PARAMS);
 back_prop = struct('intensity', back_plane, 'x', hol.x, 'y', hol.y);
 forward_prop = struct('intensity', forward_plane, 'x', hol.x, 'y', hol.y);
 
-hfig = figure;
-pos = get(hfig,'position');
-set(hfig,'position',pos.*[0.25 0.25 2.5 1.9]); %make plot window wider
-subplot(3, 3, 1)
-p1_label = sprintf("P1 Intensity Plot (z1=%3d um)", z1*1e3);
-plot_im(p1, p1_label)
-subplot(3, 3, 2)
-p2_label = sprintf("P2 Intensity Plot (z2=%3d um)", z2*1e3);
-plot_im(p2, p2_label)
-subplot(3, 3, 3)
-plot_im(interference, "P1 + P2 Intensity")
-subplot(3, 3, 4)
-plot_im(hol, "Re(Complex Hologram)", 'real')
-subplot(3, 3, 5)
-plot_im(hol, "Im(Complex Hologram)", 'imag')
-subplot(3, 3, 6)
-plot_im(hol, "Abs(Complex Hologram)", 'intensity')
-subplot(3, 3, 7)
-b_prop_label_re = sprintf('Re(Fresnel Propagated z=%3d um)', z_back*1e3);
-plot_im(back_prop, b_prop_label_re, 'real')
-subplot(3, 3, 8)
-b_prop_label_im = sprintf('Im(Fresnel Propagated z=%3d um)', z_back*1e3);
-plot_im(back_prop, b_prop_label_im, 'imag')
-subplot(3, 3, 9)
-b_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z_back*1e3);
-plot_im(back_prop, b_prop_label, 'intensity', [0 1])
+% hfig = figure;
+% pos = get(hfig,'position');
+% set(hfig,'position',pos.*[0.25 0.25 2.5 1.9]); %make plot window wider
+% subplot(3, 3, 1)
+% p1_label = sprintf("P1 Intensity Plot (z1=%3d um)", z1*1e3);
+% plot_im(p1, p1_label)
+% subplot(3, 3, 2)
+% p2_label = sprintf("P2 Intensity Plot (z2=%3d um)", z2*1e3);
+% plot_im(p2, p2_label)
+% subplot(3, 3, 3)
+% plot_im(interference, "P1 + P2 Intensity")
+% subplot(3, 3, 4)
+% plot_im(hol, "Re(Complex Hologram)", 'real')
+% subplot(3, 3, 5)
+% plot_im(hol, "Im(Complex Hologram)", 'imag')
+% subplot(3, 3, 6)
+% plot_im(hol, "Abs(Complex Hologram)", 'intensity')
+% subplot(3, 3, 7)
+% b_prop_label_re = sprintf('Re(Fresnel Propagated z=%3d um)', z_back*1e3);
+% plot_im(back_prop, b_prop_label_re, 'real')
+% subplot(3, 3, 8)
+% b_prop_label_im = sprintf('Im(Fresnel Propagated z=%3d um)', z_back*1e3);
+% plot_im(back_prop, b_prop_label_im, 'imag')
+% subplot(3, 3, 9)
+% b_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z_back*1e3);
+% plot_im(back_prop, b_prop_label, 'intensity', [0 1])
+
+plot_im(FT(back_prop), "FT of back\_prop")
 
 function plane_struct = FT(image_struct)
     if isfield(image_struct, 'intensity')
@@ -90,13 +92,13 @@ function plane_struct = FT(image_struct)
     else
         fprintf("Struct did not have an 'intensity' or 'field' field");
     end
-    ft = fft2(image_struct.(field_type));
+    ft = fftshift(fft2(image_struct.(field_type)));
     %get correct frequency axis
     % Define spatial axes (unused)
     dx = image_struct.x(2) - image_struct.x(1);
     dy = image_struct.y(2) - image_struct.y(1);
-    lx = image_struct.x(-1) - image_struct.x(1);
-    ly = image_struct.y(-1) - image_struct.y(1);
+    lx = image_struct.x(end) - image_struct.x(1);
+    ly = image_struct.y(end) - image_struct.y(1);
     % Define frequency axes (unused)
     fMax_x = 1/(2*dx);
     fMax_y = 1/(2*dy);
@@ -104,6 +106,7 @@ function plane_struct = FT(image_struct)
     df_y = 1/ly;
     fx = -fMax_x:df_x:fMax_x-df_x;
     fy = -fMax_y:df_y:fMax_y-df_y;
+    plane_struct = struct('intensity', ft, 'fx', fx, 'fy', fy);
 end
 
 %Other Plots
@@ -121,13 +124,11 @@ end
 % subplot(2, 3, 6)
 % plot_im(shifted3, "abs(H3) (Theta = 4*pi/3)")
 
-%Other sanity checks that our Fresnel propagator works correctly.
-
-%Check that gaussian beam area doubles when we propagate
-%by the Rayleigh distance.
-%gaussian_beam_test()
+%Sanity checks that our Fresnel propagator works correctly are in
+%./Test_Scripts/
 
 %Function Definitions are in ./MATLAB_FUNCTIONS
+%Not yet working.
 function plane = zoom(image_struct)
     if isfield(image_struct, 'intensity')
         field_type = 'intensity';
