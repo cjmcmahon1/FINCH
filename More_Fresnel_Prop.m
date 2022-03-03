@@ -61,26 +61,15 @@ fwd_comparison = struct('field', ...
 hfig = figure;
 pos = get(hfig,'position');
 set(hfig,'position',pos.*[0.25 0.25 2.5 1.9]); %make plot window wider
-subplot(3, 3, 1)
-p1_label = sprintf("P1 Intensity Plot (z1=%3d um)", z1*1e3);
-plot_im(p1, p1_label)
-subplot(3, 3, 2)
-p2_label = sprintf("P2 Intensity Plot (z2=%3d um)", z2*1e3);
-plot_im(p2, p2_label)
-subplot(3, 3, 3)
-plot_im(interference, "P1 + P2 Intensity")
-subplot(3, 3, 4)
-plot_im(hol, "Re(Complex Hologram)", 'real')
-subplot(3, 3, 5)
-plot_im(hol, "Im(Complex Hologram)", 'imag')
-subplot(3, 3, 6)
-plot_im(hol, "Abs(Complex Hologram)", 'intensity')
-subplot(3, 3, 7)
-b_prop_label_re = sprintf('Re(Fresnel Propagated z=%3d um)', z_back*1e3);
-plot_im(back_prop, b_prop_label_re, 'real')
-subplot(3, 3, 8)
-b_prop_label_im = sprintf('Im(Fresnel Propagated z=%3d um)', z_back*1e3);
-plot_im(back_prop, b_prop_label_im, 'imag')
-subplot(3, 3, 9)
+subplot(2, 2, 1)
 b_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z_back*1e3);
 plot_im(back_prop, b_prop_label, 'intensity')
+subplot(2, 2, 2)
+b_comp_label = sprintf('Intensity of P1 + P2 at P1');
+plot_im(back_comparison, b_comp_label, 'intensity')
+subplot(2, 2, 3)
+f_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z_forward*1e3);
+plot_im(forward_prop, f_prop_label, 'intensity')
+subplot(2, 2, 4)
+f_comp_label = sprintf('Intensity of P1 + P2 at P2');
+plot_im(fwd_comparison, f_comp_label, 'intensity')
