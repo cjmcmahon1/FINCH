@@ -55,34 +55,34 @@ forward_plane = fresnel_prop(hol.intensity, z_forward, PARAMS);
 back_prop = struct('intensity', back_plane, 'x', hol.x, 'y', hol.y);
 forward_prop = struct('intensity', forward_plane, 'x', hol.x, 'y', hol.y);
 
-% hfig = figure;
-% pos = get(hfig,'position');
-% set(hfig,'position',pos.*[0.25 0.25 2.5 1.9]); %make plot window wider
-% subplot(3, 3, 1)
-% p1_label = sprintf("P1 Intensity Plot (z1=%3d um)", z1*1e3);
-% plot_im(p1, p1_label)
-% subplot(3, 3, 2)
-% p2_label = sprintf("P2 Intensity Plot (z2=%3d um)", z2*1e3);
-% plot_im(p2, p2_label)
-% subplot(3, 3, 3)
-% plot_im(interference, "P1 + P2 Intensity")
-% subplot(3, 3, 4)
-% plot_im(hol, "Re(Complex Hologram)", 'real')
-% subplot(3, 3, 5)
-% plot_im(hol, "Im(Complex Hologram)", 'imag')
-% subplot(3, 3, 6)
-% plot_im(hol, "Abs(Complex Hologram)", 'intensity')
-% subplot(3, 3, 7)
-% b_prop_label_re = sprintf('Re(Fresnel Propagated z=%3d um)', z_back*1e3);
-% plot_im(back_prop, b_prop_label_re, 'real')
-% subplot(3, 3, 8)
-% b_prop_label_im = sprintf('Im(Fresnel Propagated z=%3d um)', z_back*1e3);
-% plot_im(back_prop, b_prop_label_im, 'imag')
-% subplot(3, 3, 9)
-% b_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z_back*1e3);
-% plot_im(back_prop, b_prop_label, 'intensity', [0 1])
+hfig = figure;
+pos = get(hfig,'position');
+set(hfig,'position',pos.*[0.25 0.25 2.5 1.9]); %make plot window wider
+subplot(3, 3, 1)
+p1_label = sprintf("P1 Intensity Plot (z1=%3d um)", z1*1e3);
+plot_im(p1, p1_label)
+subplot(3, 3, 2)
+p2_label = sprintf("P2 Intensity Plot (z2=%3d um)", z2*1e3);
+plot_im(p2, p2_label)
+subplot(3, 3, 3)
+plot_im(interference, "P1 + P2 Intensity")
+subplot(3, 3, 4)
+plot_im(hol, "Re(Complex Hologram)", 'real')
+subplot(3, 3, 5)
+plot_im(hol, "Im(Complex Hologram)", 'imag')
+subplot(3, 3, 6)
+plot_im(hol, "Abs(Complex Hologram)", 'intensity')
+subplot(3, 3, 7)
+b_prop_label_re = sprintf('Re(Fresnel Propagated z=%3d um)', z_back*1e3);
+plot_im(back_prop, b_prop_label_re, 'real')
+subplot(3, 3, 8)
+b_prop_label_im = sprintf('Im(Fresnel Propagated z=%3d um)', z_back*1e3);
+plot_im(back_prop, b_prop_label_im, 'imag')
+subplot(3, 3, 9)
+b_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z_back*1e3);
+plot_im(back_prop, b_prop_label, 'intensity', [0 1])
 
-plot_im(FT(back_prop), "FT of back\_prop")
+% plot_im(FT(back_prop), "FT of back\_prop")
 
 function plane_struct = FT(image_struct)
     if isfield(image_struct, 'intensity')

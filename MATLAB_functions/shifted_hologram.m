@@ -21,8 +21,17 @@ function result = shifted_hologram(plane, theta, bench_params, rh)
     P = pupil_func(rh, bench_params);
     h1 = plane.(field_type) .* exp(1i * theta);
     h2 = conj(plane.(field_type)) .* exp(-1i * theta);
-%     intensity = P .* (2 + h1 + h2); % MS - why add 2? also, what is P doing?
-    intensity = abs(h1 + h2).^2; % is this the correct expression?
+    %intensity = P .* (2 + h1 + h2); % MS - why add 2? also, what is P doing?
+    % after discussion, this needs to be corrected. The term from brooker
+    % is for a specific interference pattern which we are not using. 
+    % CM - This is from Brooker (2021) equation 1. P is supposed to be 
+    % term that accounts for the lens's finite size. It it set to be the 
+    % size of the image plane here, so it is a bit redundant. We add a
+    % constant C = 2 as in Brooker (2007) equation 4. I think the value of
+    % C is not so important, because the goal of the complex hologram is to
+    % get rid of that term, as well as the twin image. 
+%     intensity = abs(h1 + h2).^2; % is this the correct expression?
+    %CM - We don't square the 
     result = struct('intensity', intensity, 'x', plane.x, 'y', plane.y);
 end
 
