@@ -32,13 +32,12 @@ z_back = -1; %mm
 z_forward = 1; %mm
 p1 = propagate_init(z1, PARAMS);
 p2 = propagate_init(z2, PARAMS);
-%add the two fields together
-interference = struct('field', p1.field + p2.field, 'x', p1.x, 'y', p1.y);
-%create phase shifted holograms for plotting
+%create phase shifted interference patterns
 shifted1 = shifted_hologram(p1, p2, 0 * pi / 3);
 shifted2 = shifted_hologram(p1, p2, 2 * pi / 3);
 shifted3 = shifted_hologram(p1, p2, 4 * pi / 3);
 %generate the complex-valued hologram
+%This will internally generate and use the phase shifted holograms above
 hol = complex_hologram(p1, p2, 3);
 %fresnel propagate the complex hologram backwards/forwards
 back_plane = fresnel_prop(hol.intensity, z_back, PARAMS);
@@ -60,6 +59,9 @@ fwd_comparison = struct('intensity', ...
     'x', fwd_comp_plane1.x, 'y', fwd_comp_plane1.y);
 
 %plot 3 shifted holograms
+fig1 = figure('Name', 'Phase Shifted Interference Patterns');
+pos = get(fig1,'position');
+set(fig1,'position',pos.*[0.25 0.25 1.9 1.0]); %make plot window wider
 subplot(1, 3, 1);
 plot_im(shifted1, '\theta = 0');
 subplot(1, 3, 2);
@@ -68,18 +70,18 @@ subplot(1, 3, 3);
 plot_im(shifted3, '\theta = 4 \pi/3');
 %plot comparision of the two intensities with the reconstructed hologram at
 %values z = -1mm and z = +1mm
-% hfig = figure('Name', 'Ground Truth Field vs Propagated Hologram');
-% pos = get(hfig,'position');
-% set(hfig,'position',pos.*[0.25 0.25 1.9 1.9]); %make plot window wider
-% subplot(2, 2, 1)
-% b_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z_back*1e3);
-% plot_im(back_prop, b_prop_label, 'intensity')
-% subplot(2, 2, 2)
-% b_comp_label = sprintf('Intensity of P1 + P2 at P1');
-% plot_im(back_comparison, b_comp_label, 'intensity')
-% subplot(2, 2, 3)
-% f_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z_forward*1e3);
-% plot_im(forward_prop, f_prop_label, 'intensity')
-% subplot(2, 2, 4)
-% f_comp_label = sprintf('Intensity of P1 + P2 at P2');
-% plot_im(fwd_comparison, f_comp_label, 'intensity')
+hfig = figure('Name', 'Ground Truth Field vs Propagated Hologram');
+pos = get(hfig,'position');
+set(hfig,'position',pos.*[0.25 0.25 2.2 1.9]); %make plot window wider
+subplot(2, 2, 1)
+b_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z_back*1e3);
+plot_im(back_prop, b_prop_label, 'intensity')
+subplot(2, 2, 2)
+b_comp_label = sprintf('Intensity of P1 + P2 at P1');
+plot_im(back_comparison, b_comp_label, 'intensity')
+subplot(2, 2, 3)
+f_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z_forward*1e3);
+plot_im(forward_prop, f_prop_label, 'intensity')
+subplot(2, 2, 4)
+f_comp_label = sprintf('Intensity of P1 + P2 at P2');
+plot_im(fwd_comparison, f_comp_label, 'intensity')

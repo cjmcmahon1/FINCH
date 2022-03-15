@@ -43,11 +43,11 @@ p2 = propagate_init(z2, PARAMS);
 %add the two fields together
 interference = struct('field', p1.field + p2.field, 'x', p1.x, 'y', p1.y);
 %create phase shifted holograms for plotting
-shifted1 = shifted_hologram(interference, 0 * pi / 3);
-shifted2 = shifted_hologram(interference, 2 * pi / 3);
-shifted3 = shifted_hologram(interference, 4 * pi / 3);
+shifted1 = shifted_hologram(p1, p2, 0 * pi / 3);
+shifted2 = shifted_hologram(p1, p2, 2 * pi / 3);
+shifted3 = shifted_hologram(p1, p2, 4 * pi / 3);
 %generate the complex-valued hologram
-hol = complex_hologram(interference, 3, PARAMS);
+hol = complex_hologram(p1, p2, 3);
 %fresnel propagate the complex hologram backwards
 %if this is equal to z1 or z2, then we should just see a point
 back_plane = fresnel_prop(hol.intensity, z_back, PARAMS);
