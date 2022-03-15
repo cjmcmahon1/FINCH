@@ -1,16 +1,6 @@
-% More Fresnel Propagation Tests
-% Same code as Short_Distance_Fresnel but with tests in response to
-% comments
-%{
-TODO:
--Plot FT of the reconstructed hologram, look at line spread for different
-propagation distances
--Check that the -1mm plot properly has both images displayed when fresnel
-propagating
--Make the intensity axis consistent for different images for easier
-comparison
--add images to README for reference
-%}
+% Modified More_Fresnel_Prop to include a slider for Z propagation.
+% Requires UIControl Toolbox
+% Bug in callback function breaks plot updating, will fix later
 addpath('./MATLAB_functions/'); %include helper functions
 
 % Parameters; units mm

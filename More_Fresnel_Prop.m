@@ -18,9 +18,9 @@ PARAMS = struct;
 PARAMS.Lx = 250e-3;      %x side length of input image
 PARAMS.Ly = 250e-3;      %y side length of input image
 PARAMS.lambda = 490e-6; %wavelength
-PARAMS.Mx = 2048;        %x samples
-PARAMS.My = 2048;        %y samples
-PARAMS.NA = 0.1;        %numerical aperture
+PARAMS.Mx = 1024*1;        %x samples
+PARAMS.My = 1024*1;        %y samples
+PARAMS.NA = 0.05;        %numerical aperture
 
 %Generate fields by Fresnel propagating constant amplitude,
 %circular aperture fields two different distances z1 & z2. 
@@ -28,7 +28,7 @@ PARAMS.NA = 0.1;        %numerical aperture
 %the Brooker papers have z1~-10mm, z2~10mm
 z1 = -1; %mm
 z2 = 1; %mm
-z_back = -1; %mm
+z_back = -1/2; %mm
 z_forward = 1; %mm
 p1 = propagate_init(z1, PARAMS);
 p2 = propagate_init(z2, PARAMS);
@@ -40,7 +40,7 @@ shifted3 = shifted_hologram(p1, p2, 4 * pi / 3);
 %This will internally generate and use the phase shifted holograms above
 hol = complex_hologram(p1, p2, 3);
 %fresnel propagate the complex hologram backwards/forwards
-back_plane = fresnel_prop(hol.intensity, z_back/2, PARAMS);
+back_plane = fresnel_prop(hol.intensity, z_back, PARAMS);
 forward_plane = fresnel_prop(hol.intensity, z_forward, PARAMS);
 back_prop = struct('intensity', back_plane, 'x', hol.x, 'y', hol.y);
 forward_prop = struct('intensity', forward_plane, 'x', hol.x, 'y', hol.y);

@@ -1,4 +1,9 @@
-%Script to turn some bench images into a hologram
+%Script to turn some bench images into an interference pattern. This is the
+%test from 2-21-22 where I just image an illuminated pinhole when going
+%through the triangle interferometer. The LP angle specified is the angle
+%of the polarizer, which determines which arm of the interferometer the
+%beam goes through (45 degrees for both arms). The camera is placed
+%somewhere in between the two focal points of the lens. 
 
 addpath('./MATLAB_functions/'); %include helper functions
 
