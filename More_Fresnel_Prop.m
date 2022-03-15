@@ -20,7 +20,7 @@ PARAMS.Ly = 250e-3;      %y side length of input image
 PARAMS.lambda = 490e-6; %wavelength
 PARAMS.Mx = 1024*1;        %x samples
 PARAMS.My = 1024*1;        %y samples
-PARAMS.NA = 0.05;        %numerical aperture
+PARAMS.NA = 0.1;        %numerical aperture
 
 %Generate fields by Fresnel propagating constant amplitude,
 %circular aperture fields two different distances z1 & z2. 
@@ -28,8 +28,8 @@ PARAMS.NA = 0.05;        %numerical aperture
 %the Brooker papers have z1~-10mm, z2~10mm
 z1 = -1; %mm
 z2 = 1; %mm
-z_back = -1/2; %mm
-z_forward = 1; %mm
+z_back = -1./2; %mm
+z_forward = 1./2; %mm
 p1 = propagate_init(z1, PARAMS);
 p2 = propagate_init(z2, PARAMS);
 %create phase shifted interference patterns

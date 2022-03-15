@@ -5,7 +5,7 @@
 %beam goes through (45 degrees for both arms). The camera is placed
 %somewhere in between the two focal points of the lens. 
 
-addpath('./MATLAB_functions/'); %include helper functions
+addpath('../MATLAB_functions/'); %include helper functions
 
 %Measurements from the camera (units mm)
 

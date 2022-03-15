@@ -10,7 +10,7 @@ PARAMS.Ly = 250e-3;      %y side length of input image
 PARAMS.lambda = 490e-6; %wavelength
 PARAMS.Mx = 1024;        %x samples
 PARAMS.My = 1024;        %y samples
-PARAMS.NA = 0.05;        %numerical aperture
+PARAMS.NA = 0.1;        %numerical aperture
 
 %Generate fields by Fresnel propagating constant amplitude,
 %circular aperture fields two different distances z1 & z2. 
