@@ -13,7 +13,8 @@ function result = complex_hologram(plane, num_angles, bench_params)
     for i = 1:num_angles
         prev_angle = mod(inc*(i-1), 2*pi);
         next_angle = mod(inc*(i+1), 2*pi);
-        shifted_h = shifted_hologram(plane, inc*i, bench_params, 250e-3);
+        % shifted_h = shifted_hologram(plane, inc*i, bench_params, 250e-3);
+        shifted_h = shifted_hologram(plane, inc*i);
         phase = exp(1i * prev_angle) - exp(1i * next_angle);
         h_sum = h_sum + shifted_h.intensity .* phase;
     end
