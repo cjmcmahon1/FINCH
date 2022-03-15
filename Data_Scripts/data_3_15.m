@@ -39,11 +39,6 @@ for i = 1:length(z_vals)
     plot_im(sys, label);
 end
 
-function hol_struct = gen_hol_im(hol, z, bench_params)
-    hol_plane = fresnel_prop(hol.intensity, z, bench_params);
-    hol_struct = struct('intensity', hol_plane, 'x', hol.x, 'y', hol.y);
-end
-
 function c_hologram = hol_from_data(image_struct_list)
     num_h = length(image_struct_list);
     int_shape = size(image_struct_list(1).intensity);
