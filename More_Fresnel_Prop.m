@@ -40,7 +40,7 @@ shifted3 = shifted_hologram(p1, p2, 4 * pi / 3);
 %This will internally generate and use the phase shifted holograms above
 hol = complex_hologram(p1, p2, 3);
 %fresnel propagate the complex hologram backwards/forwards
-back_plane = fresnel_prop(hol.intensity, z_back, PARAMS);
+back_plane = fresnel_prop(hol.intensity, z_back/2, PARAMS);
 forward_plane = fresnel_prop(hol.intensity, z_forward, PARAMS);
 back_prop = struct('intensity', back_plane, 'x', hol.x, 'y', hol.y);
 forward_prop = struct('intensity', forward_plane, 'x', hol.x, 'y', hol.y);

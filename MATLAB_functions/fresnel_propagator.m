@@ -18,5 +18,5 @@ function H = fresnel_propagator(z, Lx, Mx, Ly, My, lambda)
     df_y = 1/Ly;
     fy = -fMax_y:df_y:fMax_y-df_y;
     [FX,FY] = meshgrid(fx,fy);
-    H = exp(-1i*pi*lambda*z*(FX.^2 + FY.^2));
+    H = exp(2i*pi*z/lambda) .* exp(-1i*pi*lambda*z*(FX.^2 + FY.^2));
 end
