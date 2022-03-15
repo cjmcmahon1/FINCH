@@ -55,34 +55,63 @@ forward_plane = fresnel_prop(hol.intensity, z_forward, PARAMS);
 back_prop = struct('intensity', back_plane, 'x', hol.x, 'y', hol.y);
 forward_prop = struct('intensity', forward_plane, 'x', hol.x, 'y', hol.y);
 
-hfig = figure;
-pos = get(hfig,'position');
-set(hfig,'position',pos.*[0.25 0.25 2.5 1.9]); %make plot window wider
-subplot(3, 3, 1)
-p1_label = sprintf("P1 Intensity Plot (z1=%3d um)", z1*1e3);
-plot_im(p1, p1_label)
-subplot(3, 3, 2)
-p2_label = sprintf("P2 Intensity Plot (z2=%3d um)", z2*1e3);
-plot_im(p2, p2_label)
-subplot(3, 3, 3)
-plot_im(interference, "P1 + P2 Intensity")
-subplot(3, 3, 4)
-plot_im(hol, "Re(Complex Hologram)", 'real')
-subplot(3, 3, 5)
-plot_im(hol, "Im(Complex Hologram)", 'imag')
-subplot(3, 3, 6)
-plot_im(hol, "Abs(Complex Hologram)", 'intensity')
-subplot(3, 3, 7)
-b_prop_label_re = sprintf('Re(Fresnel Propagated z=%3d um)', z_back*1e3);
-plot_im(back_prop, b_prop_label_re, 'real')
-subplot(3, 3, 8)
-b_prop_label_im = sprintf('Im(Fresnel Propagated z=%3d um)', z_back*1e3);
-plot_im(back_prop, b_prop_label_im, 'imag')
-subplot(3, 3, 9)
-b_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z_back*1e3);
-plot_im(back_prop, b_prop_label, 'intensity')
+% hfig = figure;
+% pos = get(hfig,'position');
+% set(hfig,'position',pos.*[0.25 0.25 2.5 1.9]); %make plot window wider
+% subplot(3, 3, 1)
+% p1_label = sprintf("P1 Intensity Plot (z1=%3d um)", z1*1e3);
+% plot_im(p1, p1_label)
+% subplot(3, 3, 2)
+% p2_label = sprintf("P2 Intensity Plot (z2=%3d um)", z2*1e3);
+% plot_im(p2, p2_label)
+% subplot(3, 3, 3)
+% plot_im(interference, "P1 + P2 Intensity")
+% subplot(3, 3, 4)
+% plot_im(hol, "Re(Complex Hologram)", 'real')
+% subplot(3, 3, 5)
+% plot_im(hol, "Im(Complex Hologram)", 'imag')
+% subplot(3, 3, 6)
+% plot_im(hol, "Abs(Complex Hologram)", 'intensity')
+% subplot(3, 3, 7)
+% b_prop_label_re = sprintf('Re(Fresnel Propagated z=%3d um)', z_back*1e3);
+% plot_im(back_prop, b_prop_label_re, 'real')
+% subplot(3, 3, 8)
+% b_prop_label_im = sprintf('Im(Fresnel Propagated z=%3d um)', z_back*1e3);
+% plot_im(back_prop, b_prop_label_im, 'imag')
+% subplot(3, 3, 9)
+% b_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z_back*1e3);
+% plot_im(back_prop, b_prop_label, 'intensity')
 
+z_vals = linspace(-1, 0, 30);
+% hol3d = hologram3D(hol, z_vals, PARAMS);
+frames = hologram3D_to_frames(hol3d);
+movie(frames, 5, 5);
 % plot_im(FT(back_prop), "FT of back\_prop")
+
+function F = hologram3D_to_frames(hologram_struct)
+    z_vals = hologram_struct.z;
+    F(length(z_vals)) = struct('cdata',[],'colormap',[]);
+    colormap("gray");
+    for i = 1:length(z_vals)
+        X = abs(squeeze(hologram_struct.intensity(:,:,i)));
+%         [Y,newmap] = imapprox(X,'gray',100,'nodither');
+        F(i) = im2frame(grayslice(X), colormap('gray'));
+    end
+end
+
+function hol3d_struct = hologram3D(hologram, z_vals, bench_params)
+    %generate a rank-3 complex hologram by fresnel propagating along
+    %z_vals (assumed to be evenly spaced)
+    num_z = length(z_vals);
+    hol_shape = size(hologram.intensity);
+    hol3d = zeros(hol_shape(1), hol_shape(2),num_z);
+    for i = 1:num_z
+        hol3d(:,:,i) = fresnel_prop(hologram.intensity, ...
+                                    z_vals(i), bench_params);
+    end
+    hol3d_struct = struct('intensity', hol3d, 'x', hologram.x, 'y', ...
+                  hologram.y, 'z', z_vals);
+end
 
 function plane_struct = FT(image_struct)
     if isfield(image_struct, 'intensity')
@@ -94,12 +123,12 @@ function plane_struct = FT(image_struct)
     end
     ft = fftshift(fft2(image_struct.(field_type)));
     %get correct frequency axis
-    % Define spatial axes (unused)
+    % Define spatial axes
     dx = image_struct.x(2) - image_struct.x(1);
     dy = image_struct.y(2) - image_struct.y(1);
     lx = image_struct.x(end) - image_struct.x(1);
     ly = image_struct.y(end) - image_struct.y(1);
-    % Define frequency axes (unused)
+    % Define frequency axes
     fMax_x = 1/(2*dx);
     fMax_y = 1/(2*dy);
     df_x = 1/lx;
