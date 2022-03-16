@@ -9,8 +9,8 @@ PARAMS = struct;
 PARAMS.Lx = 250e-3;      %x side length of input image
 PARAMS.Ly = 250e-3;      %y side length of input image
 PARAMS.lambda = 490e-6; %wavelength
-PARAMS.Mx = 2048;        %x samples
-PARAMS.My = 2048;        %y samples
+PARAMS.Mx = 1024;        %x samples
+PARAMS.My = 1024;        %y samples
 PARAMS.NA = 0.1;        %numerical aperture
 
 %Generate fields by Fresnel propagating constant amplitude,
@@ -19,20 +19,24 @@ PARAMS.NA = 0.1;        %numerical aperture
 %the Brooker papers have z1~-10mm, z2~10mm
 z1 = -1; %mm
 z2 = 1; %mm
-z_back = -1./2; %mm
-z_forward = 1./2; %mm
 p1 = propagate_init(z1, PARAMS);
 p2 = propagate_init(z2, PARAMS);
-%add the two fields together
-interference = struct('field', p1.field + p2.field, 'x', p1.x, 'y', p1.y);
 %generate the complex-valued hologram
 hol = complex_hologram(p1, p2, 3);
 
 % make a 3D hologram by Fresnel propagating various z distances
-z_vals = linspace(-1, 0, 30);
-hol3d = hologram3D(hol, z_vals, PARAMS);
-hol3d_ft = FT(hol3d);
-imagesc(abs(hol3d_ft.intensity(:,1024,:)));
+z_vals = linspace(-0.55, -0.45, 200);
+%hol3d = hologram3D(hol, z_vals, PARAMS);
+hol3d_xz_im = squeeze(abs(hol3d.intensity(:,512,:)));
+subplot(1, 2, 1);
+imagesc(hol3d.x, hol3d.z, hol3d_xz_im);
+colormap('gray');
+xlabel('x (mm)');
+ylabel('z (mm)');
+% hol3d_ft = FT(hol3d);
+% hol3d_ft_im = squeeze(abs(hol3d_ft.intensity(:,512,:)));
+% imagesc(hol3d_ft.fx, hol3d_ft.fz, hol3d_ft_im);
+
 
 function plane_struct = FT(image_struct)
     if isfield(image_struct, 'intensity')
@@ -42,7 +46,7 @@ function plane_struct = FT(image_struct)
     else
         fprintf("Struct did not have an 'intensity' or 'field' field");
     end
-    ft = fftshift(fftn(ifftshift(image_struct.(field_type))));
+    ft = fftshift(fftn(image_struct.(field_type)));
     %get correct frequency axis
     % Define spatial axes
     dx = image_struct.x(2) - image_struct.x(1);
@@ -64,7 +68,7 @@ function plane_struct = FT(image_struct)
        lz = image_struct.z(end) - image_struct.z(1);
        df_z = 1/lz;
        fz = -fMax_z:df_z:fMax_z-df_z;
-       plane_struct.z = fz;
+       plane_struct.fz = fz;
     end
 end
 
