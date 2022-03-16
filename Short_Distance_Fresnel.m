@@ -82,21 +82,38 @@ forward_prop = struct('intensity', forward_plane, 'x', hol.x, 'y', hol.y);
 % b_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z_back*1e3);
 % plot_im(back_prop, b_prop_label, 'intensity')
 
+% hol3d_ft_xz = ft(ft(hol3d.intensity, 1), 3);
+% hol3d_ft_struct = struct('intensity', hol3d_ft_xz(:,1024,:), ...
+%     'x', hol3d.x, 'y', hol3d.y);
+% plot_im(hol3d_ft_struct, '3D PSF');
+
+% plot_im(FT(back_prop), "FT of back\_prop")
+
+% make a 3D hologram by Fresnel propagating various z distances
 z_vals = linspace(-1, 0, 30);
-% hol3d = hologram3D(hol, z_vals, PARAMS);
+hol3d = hologram3D(hol, z_vals, PARAMS);
 frames = hologram3D_to_frames(hol3d);
 movie(frames, 5, 5);
-% plot_im(FT(back_prop), "FT of back\_prop")
 
 function F = hologram3D_to_frames(hologram_struct)
     z_vals = hologram_struct.z;
+    hol_max = max(abs(hologram_struct.intensity(:)));
     F(length(z_vals)) = struct('cdata',[],'colormap',[]);
-    colormap("gray");
     for i = 1:length(z_vals)
         X = abs(squeeze(hologram_struct.intensity(:,:,i)));
-%         [Y,newmap] = imapprox(X,'gray',100,'nodither');
-        F(i) = im2frame(grayslice(X), colormap('gray'));
+%         tmp_label = sprintf('z = %3d \mum', z_vals(i)*1e3);
+        imagesc(hologram_struct.x, hologram_struct.y, X./hol_max);
+        colormap('gray');
+        caxis([0 1]);
+        axis('square');
+        xlabel("x (mm)");
+        ylabel("y (mm)");
+        colorbar();
+        drawnow
+        F(i) = getframe;
+        %F(i) = im2frame(x_approx, newmap);
     end
+
 end
 
 function hol3d_struct = hologram3D(hologram, z_vals, bench_params)
@@ -121,7 +138,7 @@ function plane_struct = FT(image_struct)
     else
         fprintf("Struct did not have an 'intensity' or 'field' field");
     end
-    ft = fftshift(fft2(image_struct.(field_type)));
+    ft = fftshift(fftn(ifftshift(image_struct.(field_type))));
     %get correct frequency axis
     % Define spatial axes
     dx = image_struct.x(2) - image_struct.x(1);
@@ -136,6 +153,15 @@ function plane_struct = FT(image_struct)
     fx = -fMax_x:df_x:fMax_x-df_x;
     fy = -fMax_y:df_y:fMax_y-df_y;
     plane_struct = struct('intensity', ft, 'fx', fx, 'fy', fy);
+    if isfield(image_struct, 'z')
+       %compute z frequencies if it's a 3D hologram
+       dz = image_struct.z(2) - image_struct.z(1); 
+       fMax_z = 1/(2*dz);
+       lz = image_struct.z(end) - image_struct.z(1);
+       df_z = 1/lz;
+       fz = -fMax_z:df_z:fMax_z-df_z;
+       plane_struct.z = fz;
+    end
 end
 
 %Other Plots
@@ -177,4 +203,13 @@ function plane = zoom(image_struct)
     new_y = new_x;
     plane = struct(field_type, new_field, 'x', new_x, 'y', new_y);
 end
-    
+
+function b=ft(a, dim)
+    % 2D Fourier transform
+    b=fftshift(fft(ifftshift(a, dim), dim), dim);
+end
+
+function b=ift(a, dim)
+    % 2D inversion Fourier transform
+    b=ifftshift(ifft(fftshift(a, dim), dim), dim);
+end

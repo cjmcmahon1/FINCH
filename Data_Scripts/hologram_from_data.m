@@ -5,12 +5,12 @@
 %beam goes through (45 degrees for both arms). The camera is placed
 %somewhere in between the two focal points of the lens. 
 
-addpath('./MATLAB_functions/'); %include helper functions
+addpath('../MATLAB_functions/'); %include helper functions
 addpath('./Data_Functions/');
 
 %Measurements from the camera (units mm)
 
-base_folder = './Images/Bench_Images/3-7-22/';
+base_folder = '../Images/Bench_Images/3-7-22/';
 
 im1 = open_im(strcat(base_folder, '5um-im4-0deg.png'));
 im2 = open_im(strcat(base_folder, '5um-im5-120deg.png'));
