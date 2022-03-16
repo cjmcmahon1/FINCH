@@ -98,6 +98,11 @@ plot_im(shifted2, "abs(H2) (\theta = 2\pi/3)")
 subplot(2, 3, 6)
 plot_im(shifted3, "abs(H3) (\theta = 4\pi/3)")
 
+%Sanity checks that our Fresnel propagator works correctly are in
+%./Test_Scripts/
+
+%Function Definitions are in ./MATLAB_FUNCTIONS/
+%WIP Functions
 function plane_struct = FT(image_struct)
     if isfield(image_struct, 'intensity')
         field_type = 'intensity';
@@ -132,10 +137,6 @@ function plane_struct = FT(image_struct)
     end
 end
 
-%Sanity checks that our Fresnel propagator works correctly are in
-%./Test_Scripts/
-
-%Function Definitions are in ./MATLAB_FUNCTIONS
 %Not yet working.
 function plane = zoom(image_struct)
     if isfield(image_struct, 'intensity')
