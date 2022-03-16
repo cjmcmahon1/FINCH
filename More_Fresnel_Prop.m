@@ -6,7 +6,7 @@ TODO:
 -Plot FT of the reconstructed hologram, look at line spread for different
 propagation distances
 -Check that the -1mm plot properly has both images displayed when fresnel
-propagating
+propagating (fixed) - this is due to the factor of 2 phase shift
 -Make the intensity axis consistent for different images for easier
 comparison
 -add images to README for reference

@@ -1,10 +1,7 @@
 % Built off a script from 7/15/20
 % Short Distance Fresnel Prop
 % Start with some amplitude distribution and propagate a short distance
-%{
-TODO:
-Normalize FT in propagate() properly
-%}
+
 addpath('./MATLAB_functions/'); %include helper functions
 
 % Parameters; units mm
