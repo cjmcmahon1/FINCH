@@ -30,10 +30,9 @@ z_vals = linspace(-0.75, -0.25, 100);
 num_z_vals = size(z_vals);
 num_z_vals = num_z_vals(2);
 % propagate in the xz plane to speed up the calculation of 3D PSFs
-hol_yslice = transpose(hol.intensity(:,midpt));
-hol_yslice_mat = repmat(hol_yslice, [num_z_vals, 1]);
+
 size(hol_yslice);
-z_propped = fresnel_prop_xz(hol_yslice_mat, z_vals, PARAMS);
+z_propped = fresnel_prop_xz(hol_yslice, z_vals, PARAMS);
 subplot(1, 3, 1)
 imagesc(z_vals, hol.x, abs(z_propped));
 colormap('gray');
@@ -80,22 +79,29 @@ function H = fresnel_propagator_xz(z_values, Lx, Mx, lambda)
     %H = transpose(H);
 end
 
-function propped = fresnel_prop_xz(im_xz, z_values, bench_params)
+function propped = fresnel_prop_xz(hol_slice, z_values, bench_params)
     %{
     Propagate an image (assumed to start in real space) a distance zf.
     %}
     arguments
-        im_xz %array that we want to propagate
+        hol_slice %y slice of a fresnel hologram
         z_values
         bench_params
     end
+    %repeat input y slice to broadcast across z values
+    num_z_vals = size(z_values);
+    im_xz = repmat(hol_slice, [num_z_vals(2), 1]);
+    %generate fresnel propagator
     H = fresnel_propagator_xz(z_values, bench_params.Lx, ...
                               bench_params.Mx, bench_params.lambda);
     % Propagate
     im_size = size(im_xz);
+    %ft only in x axis (ax=2) 
+    % this is because z axis is just used for broadcasting, not propagating
     ft = fft(im_xz, im_size(2), 2);
     proppedFt = ft .* fftshift(H);
-    propped = transpose(ifft2(proppedFt));
+    %ifft should also be only in x axis (ax=2)
+    propped = transpose(ifftshift(ifft(proppedFt, im_size(2), 2)));
 end
 
 function plane_struct = FT(image_struct)
