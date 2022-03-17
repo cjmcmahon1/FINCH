@@ -3,12 +3,12 @@
 % Start with some amplitude distribution and propagate a short distance
 
 addpath('./MATLAB_functions/'); %include helper functions
-num_pixels = 256;
+num_pixels = 512;
 midpt = num_pixels / 2;
 % Parameters; units mm
 PARAMS = struct;
-PARAMS.Lx = 150e-3;      %x side length of input image
-PARAMS.Ly = 150e-3;      %y side length of input image
+PARAMS.Lx = 250e-3;      %x side length of input image
+PARAMS.Ly = 250e-3;      %y side length of input image
 PARAMS.lambda = 490e-6; %wavelength
 PARAMS.Mx = num_pixels;        %x samples
 PARAMS.My = num_pixels;        %y samples
@@ -30,8 +30,7 @@ z_vals = linspace(-0.75, -0.25, 100);
 num_z_vals = size(z_vals);
 num_z_vals = num_z_vals(2);
 % propagate in the xz plane to speed up the calculation of 3D PSFs
-
-size(hol_yslice);
+hol_yslice = transpose(hol.intensity(:,midpt));
 z_propped = fresnel_prop_xz(hol_yslice, z_vals, PARAMS);
 subplot(1, 3, 1)
 imagesc(z_vals, hol.x, abs(z_propped));
@@ -72,11 +71,9 @@ function H = fresnel_propagator_xz(z_values, Lx, Mx, lambda)
     fx = -fMax_x:df_x:fMax_x-df_x;
     [FX,Z] = meshgrid(fx,z_values);
     quad_phase = exp(-1i*pi*lambda.*((FX.^2).*Z));
-    %quad_phase = quad_phase.^Z;
     z_phase = exp(2i*pi/lambda.*Z);
     H = quad_phase .* z_phase;
     % H = exp(2i*pi.*Z./lambda) .* exp(-1i*pi*lambda.*Z.*(FX.^2));
-    %H = transpose(H);
 end
 
 function propped = fresnel_prop_xz(hol_slice, z_values, bench_params)
@@ -100,8 +97,8 @@ function propped = fresnel_prop_xz(hol_slice, z_values, bench_params)
     % this is because z axis is just used for broadcasting, not propagating
     ft = fft(im_xz, im_size(2), 2);
     proppedFt = ft .* fftshift(H);
-    %ifft should also be only in x axis (ax=2)
-    propped = transpose(ifftshift(ifft(proppedFt, im_size(2), 2)));
+    %ifft and ifftshift should also be only in x axis (ax=2)
+    propped = ifftshift(transpose(ifft(proppedFt, im_size(2), 2)), 2);
 end
 
 function plane_struct = FT(image_struct)
