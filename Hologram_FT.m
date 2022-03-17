@@ -7,12 +7,12 @@ num_pixels = 1024;
 midpt = num_pixels / 2;
 % Parameters; units mm
 PARAMS = struct;
-PARAMS.Lx = 250e-3;      %x side length of input image
-PARAMS.Ly = 250e-3;      %y side length of input image
+PARAMS.Lx = 100e-2;      %x side length of input image
+PARAMS.Ly = 100e-2;      %y side length of input image
 PARAMS.lambda = 490e-6; %wavelength
 PARAMS.Mx = num_pixels;        %x samples
 PARAMS.My = num_pixels;        %y samples
-PARAMS.NA = 0.1;        %numerical aperture
+PARAMS.NA = 0.5;        %numerical aperture
 
 %Generate fields by Fresnel propagating constant amplitude,
 %circular aperture fields two different distances z1 & z2. 
@@ -34,10 +34,10 @@ hol_yslice = transpose(hol.intensity(:,midpt));
 hol_yslice_mat = repmat(hol_yslice, [num_z_vals, 1]);
 size(hol_yslice);
 z_propped = fresnel_prop_xz(hol_yslice_mat, z_vals, PARAMS);
-imagesc(z_vals, hol.x, abs(z_propped));
+imagesc(hol.x, z_vals, abs(z_propped));
 colormap('gray');
-xlabel('z (mm)');
-ylabel('x (mm)');
+xlabel('x (mm)');
+ylabel('z (mm)');
 %for loop method to generate a 3d hologram
 % hol3d = hologram3D(hol, z_vals, PARAMS);
 % hol3d_xz_im = squeeze(abs(hol3d.intensity(:,midpt,:)));
@@ -68,7 +68,11 @@ function H = fresnel_propagator_xz(z_values, Lx, Mx, lambda)
     df_x = 1/Lx;
     fx = -fMax_x:df_x:fMax_x-df_x;
     [FX,Z] = meshgrid(fx,z_values);
-    H = exp(2i*pi.*Z./lambda) .* exp(-1i*pi*lambda.*Z.*(FX.^2));
+    quad_phase = exp(-1i*pi*lambda.*((FX.^2).*Z));
+    %quad_phase = quad_phase.^Z;
+    z_phase = exp(2i*pi/lambda.*Z);
+    H = quad_phase .* z_phase;
+    % H = exp(2i*pi.*Z./lambda) .* exp(-1i*pi*lambda.*Z.*(FX.^2));
     %H = transpose(H);
 end
 
@@ -84,9 +88,10 @@ function propped = fresnel_prop_xz(im_xz, z_values, bench_params)
     H = fresnel_propagator_xz(z_values, bench_params.Lx, ...
                               bench_params.Mx, bench_params.lambda);
     % Propagate
-    ft = fftshift(fft2(im_xz));
+    im_size = size(im_xz);
+    ft = fft(im_xz, im_size(2), 2);
     proppedFt = ft .* fftshift(H);
-    propped = ifft2(proppedFt);
+    propped = ifft2(ifftshift(proppedFt));
 end
 
 function plane_struct = FT(image_struct)
