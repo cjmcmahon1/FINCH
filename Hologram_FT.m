@@ -3,16 +3,16 @@
 % Start with some amplitude distribution and propagate a short distance
 
 addpath('./MATLAB_functions/'); %include helper functions
-num_pixels = 1024;
+num_pixels = 256;
 midpt = num_pixels / 2;
 % Parameters; units mm
 PARAMS = struct;
-PARAMS.Lx = 100e-2;      %x side length of input image
-PARAMS.Ly = 100e-2;      %y side length of input image
+PARAMS.Lx = 150e-3;      %x side length of input image
+PARAMS.Ly = 150e-3;      %y side length of input image
 PARAMS.lambda = 490e-6; %wavelength
 PARAMS.Mx = num_pixels;        %x samples
 PARAMS.My = num_pixels;        %y samples
-PARAMS.NA = 0.5;        %numerical aperture
+PARAMS.NA = 0.1;        %numerical aperture
 
 %Generate fields by Fresnel propagating constant amplitude,
 %circular aperture fields two different distances z1 & z2. 
@@ -34,25 +34,29 @@ hol_yslice = transpose(hol.intensity(:,midpt));
 hol_yslice_mat = repmat(hol_yslice, [num_z_vals, 1]);
 size(hol_yslice);
 z_propped = fresnel_prop_xz(hol_yslice_mat, z_vals, PARAMS);
-imagesc(hol.x, z_vals, abs(z_propped));
+subplot(1, 3, 1)
+imagesc(z_vals, hol.x, abs(z_propped));
 colormap('gray');
-xlabel('x (mm)');
-ylabel('z (mm)');
+xlabel('z (mm)');
+ylabel('x (mm)');
+title('Quick 3D PSF');
 %for loop method to generate a 3d hologram
-% hol3d = hologram3D(hol, z_vals, PARAMS);
-% hol3d_xz_im = squeeze(abs(hol3d.intensity(:,midpt,:)));
-% subplot(1, 2, 1);
-% imagesc(hol3d.z, hol3d.x, hol3d_xz_im);
-% colormap('gray');
-% xlabel('z (mm)');
-% ylabel('x (mm)');
-% hol3d_ft = FT(hol3d);
-% hol3d_ft_im = squeeze(abs(hol3d_ft.intensity(:,midpt,:)));
-% subplot(1, 2, 2);
-% colormap('gray');
-% imagesc(hol3d_ft.fz, hol3d_ft.fx, hol3d_ft_im);
-% xlabel('f_z (mm^{-1})');
-% ylabel('f_x (mm^{-1})');
+hol3d = hologram3D(hol, z_vals, PARAMS);
+hol3d_xz_im = squeeze(abs(hol3d.intensity(:,midpt,:)));
+subplot(1, 3, 2);
+imagesc(hol3d.z, hol3d.x, hol3d_xz_im);
+colormap('gray');
+xlabel('z (mm)');
+ylabel('x (mm)');
+title('Full 3D PSF');
+hol3d_ft = FT(hol3d);
+hol3d_ft_im = squeeze(abs(hol3d_ft.intensity(:,midpt,:)));
+subplot(1, 3, 3);
+colormap('gray');
+imagesc(hol3d_ft.fz, hol3d_ft.fx, hol3d_ft_im);
+xlabel('f_z (mm^{-1})');
+ylabel('f_x (mm^{-1})');
+title ('FT of Full 3D PSF');
 
 function H = fresnel_propagator_xz(z_values, Lx, Mx, lambda)
     arguments
@@ -91,7 +95,7 @@ function propped = fresnel_prop_xz(im_xz, z_values, bench_params)
     im_size = size(im_xz);
     ft = fft(im_xz, im_size(2), 2);
     proppedFt = ft .* fftshift(H);
-    propped = ifft2(ifftshift(proppedFt));
+    propped = transpose(ifft2(proppedFt));
 end
 
 function plane_struct = FT(image_struct)
