@@ -4,11 +4,11 @@
 
 addpath('./MATLAB_functions/'); %include helper functions
 num_pixels = 512;
-midpt = num_pixels / 2;
+midpt = num_pixels / 2 - 1;
 % Parameters; units mm
 PARAMS = struct;
-PARAMS.Lx = 250e-3;      %x side length of input image
-PARAMS.Ly = 250e-3;      %y side length of input image
+PARAMS.Lx = 500e-3;      %x side length of input image
+PARAMS.Ly = 500e-3;      %y side length of input image
 PARAMS.lambda = 490e-6; %wavelength
 PARAMS.Mx = num_pixels;        %x samples
 PARAMS.My = num_pixels;        %y samples
@@ -26,7 +26,7 @@ p2 = propagate_init(z2, PARAMS);
 hol = complex_hologram(p1, p2, 3);
 
 % make a 3D hologram by Fresnel propagating various z distances
-z_vals = linspace(-0.75, -0.25, 100);
+z_vals = linspace(-0.15, 0.15, 100);
 num_z_vals = size(z_vals);
 num_z_vals = num_z_vals(2);
 % propagate in the xz plane to speed up the calculation of 3D PSFs

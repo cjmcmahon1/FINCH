@@ -6,11 +6,11 @@ addpath('./MATLAB_functions/'); %include helper functions
 
 % Parameters; units mm
 PARAMS = struct;
-PARAMS.Lx = 250e-3;      %x side length of input image
-PARAMS.Ly = 250e-3;      %y side length of input image
+PARAMS.Lx = 500e-3;      %x side length of input image
+PARAMS.Ly = 500e-3;      %y side length of input image
 PARAMS.lambda = 490e-6; %wavelength
-PARAMS.Mx = 2048;        %x samples
-PARAMS.My = 2048;        %y samples
+PARAMS.Mx = 1024;        %x samples
+PARAMS.My = 1024;        %y samples
 PARAMS.NA = 0.1;        %numerical aperture
 
 % Define spatial axes (unused)
@@ -92,7 +92,7 @@ plot_im(p2, sprintf('P2 (z=%3d um)', z2*1e3))
 subplot(2, 3, 3)
 plot_im(interference, "P1 + P2")
 subplot(2, 3, 4)
-plot_im(shifted2, "abs(H1) (\theta = 0)")
+plot_im(shifted1, "abs(H1) (\theta = 0)")
 subplot(2, 3, 5)
 plot_im(shifted2, "abs(H2) (\theta = 2\pi/3)")
 subplot(2, 3, 6)
