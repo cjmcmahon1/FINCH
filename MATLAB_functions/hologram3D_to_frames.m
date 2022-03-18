@@ -3,6 +3,7 @@ function F = hologram3D_to_frames(hologram_struct)
     %generate movies/scans of the resulting fresnel propagated image over
     %various z distances. (need to add z label on each frame for clarity)
     z_vals = hologram_struct.z;
+    x_vals = hologram_struct.x;
     hol_max = max(abs(hologram_struct.intensity(:)));
     F(length(z_vals)) = struct('cdata',[],'colormap',[]);
     for i = 1:length(z_vals)
@@ -11,8 +12,10 @@ function F = hologram3D_to_frames(hologram_struct)
         colormap('gray');
         caxis([0 1]);
         axis('square');
-        xlabel("x (mm)");
-        ylabel("y (mm)");
+        xlabel('x (mm)');
+        ylabel('y (mm)');
+        z_label = sprintf('z=%.2f', z_vals(i));
+        text(x_vals(8), x_vals(8), z_label, 'BackgroundColor', 'white');
         colorbar();
         drawnow
         F(i) = getframe;

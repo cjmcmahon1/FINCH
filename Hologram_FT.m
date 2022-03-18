@@ -18,7 +18,7 @@ PARAMS.NA = 0.1;        %numerical aperture
 %circular aperture fields two different distances z1 & z2. 
 %using propagate(z, parameters)
 %the Brooker papers have z1~-10mm, z2~10mm
-separation = 2; %mm
+separation = 1e-1; %mm
 z1 = -separation/2; %mm
 z2 = separation/2; %mm
 p1 = propagate_init(z1, PARAMS);
@@ -26,40 +26,41 @@ p2 = propagate_init(z2, PARAMS);
 %generate the complex-valued hologram
 hol = complex_hologram(p1, p2, 3);
 % make a 3D hologram by Fresnel propagating various z distances
-z_vals = linspace(z1/2 - separation/8, z1/2 + separation/8, 100);
+z_vals = linspace(z1/2 - 0.25, z1/2+0.25, 100);
+%z_vals = linspace(z1/2 - separation/8, z1/2 + separation/8, 100);
 num_z_vals = size(z_vals);
 num_z_vals = num_z_vals(2);
 % propagate in the xz plane to speed up the calculation of 3D PSFs
-z_propped = fresnel_prop_xz(hol, midpt, z_vals, PARAMS);
-quick_ft = abs(fftshift(fft2(z_propped)));
-%full 3D PSF calculation for comparsion
+% z_propped = fresnel_prop_xz(hol, midpt, z_vals, PARAMS);
+% quick_ft = abs(fftshift(fft2(z_propped)));
+%full 3D PSF calculation
 hol3d = hologram3D(hol, z_vals, PARAMS);
 hol3d_xz_im = squeeze(abs(hol3d.intensity(:,midpt,:)));
 hol3d_ft = FT(hol3d);
 hol3d_ft_im = squeeze(abs(hol3d_ft.intensity(:,midpt,:)));
 %plot the comparison
-subplot(1, 4, 1)
-imagesc(z_vals, hol.x, abs(z_propped));
+% subplot(1, 4, 1)
+% imagesc(z_vals, hol.x, abs(z_propped));
+% colormap('gray');
+% xlabel('z (mm)');
+% ylabel('x (mm)');
+% title('Quick 3D PSF');
+% colorbar();
+% subplot(1, 4, 2);
+% imagesc(hol3d_ft.fz, hol3d_ft.fx, quick_ft);
+% xlabel('f_z (mm^{-1})');
+% ylabel('f_x (mm^{-1})');
+% title ('FT of Quick 3D PSF');
+% colorbar();
+
+subplot(1, 2, 1);
+imagesc(hol3d.z - z1/2, hol3d.x, hol3d_xz_im);
 colormap('gray');
-xlabel('z (mm)');
-ylabel('x (mm)');
-title('Quick 3D PSF');
-colorbar();
-subplot(1, 4, 2);
-imagesc(hol3d_ft.fz, hol3d_ft.fx, quick_ft);
-xlabel('f_z (mm^{-1})');
-ylabel('f_x (mm^{-1})');
-title ('FT of Quick 3D PSF');
-colorbar();
-%for loop method to generate a 3d hologram
-subplot(1, 4, 3);
-imagesc(hol3d.z, hol3d.x, hol3d_xz_im);
-colormap('gray');
-xlabel('z (mm)');
+xlabel('distance from z focus (mm)');
 ylabel('x (mm)');
 title('Full 3D PSF');
 colorbar();
-subplot(1, 4, 4);
+subplot(1, 2, 2);
 colormap('gray');
 imagesc(hol3d_ft.fz, hol3d_ft.fx, hol3d_ft_im);
 xlabel('f_z (mm^{-1})');
