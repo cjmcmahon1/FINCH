@@ -11,7 +11,7 @@ function propped = fresnel_prop(im, zf, bench_params)
                             bench_params.Ly, bench_params.My, ...
                             bench_params.lambda);
     % Propagate
-    ft = fft2(im);
-    proppedFt = ft .* fftshift(H);
-    propped = ifft2(proppedFt);
+    ft = fftshift(fft2(im));
+    proppedFt = ft .* H;
+    propped = ifft2(ifftshift(proppedFt));
 end

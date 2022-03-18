@@ -4,7 +4,7 @@
 
 addpath('./MATLAB_functions/'); %include helper functions
 num_pixels = 512;
-midpt = num_pixels / 2 - 1;
+midpt = num_pixels / 2;
 % Parameters; units mm
 PARAMS = struct;
 PARAMS.Lx = 500e-3;      %x side length of input image
@@ -26,18 +26,18 @@ p2 = propagate_init(z2, PARAMS);
 hol = complex_hologram(p1, p2, 3);
 
 % make a 3D hologram by Fresnel propagating various z distances
-z_vals = linspace(-0.15, 0.15, 100);
+z_vals = linspace(-0.75, -0.25, 100);
 num_z_vals = size(z_vals);
 num_z_vals = num_z_vals(2);
 % propagate in the xz plane to speed up the calculation of 3D PSFs
-hol_yslice = transpose(hol.intensity(:,midpt));
-z_propped = fresnel_prop_xz(hol_yslice, z_vals, PARAMS);
+z_propped = fresnel_prop_xz(hol, midpt, z_vals, PARAMS);
 subplot(1, 3, 1)
 imagesc(z_vals, hol.x, abs(z_propped));
 colormap('gray');
 xlabel('z (mm)');
 ylabel('x (mm)');
 title('Quick 3D PSF');
+colorbar();
 %for loop method to generate a 3d hologram
 hol3d = hologram3D(hol, z_vals, PARAMS);
 hol3d_xz_im = squeeze(abs(hol3d.intensity(:,midpt,:)));
@@ -47,6 +47,7 @@ colormap('gray');
 xlabel('z (mm)');
 ylabel('x (mm)');
 title('Full 3D PSF');
+colorbar();
 hol3d_ft = FT(hol3d);
 hol3d_ft_im = squeeze(abs(hol3d_ft.intensity(:,midpt,:)));
 subplot(1, 3, 3);
@@ -56,49 +57,56 @@ xlabel('f_z (mm^{-1})');
 ylabel('f_x (mm^{-1})');
 title ('FT of Full 3D PSF');
 
-function H = fresnel_propagator_xz(z_values, Lx, Mx, lambda)
+function H = fresnel_propagator_xz(z_values, yslice_idx, bench_params)
     arguments
         z_values % propagataion distance
-        Lx = 250e-3
-        Mx = 1024
-        lambda = 490e-6
+        yslice_idx % index of desired y-slice
+        bench_params % setup parameters
     end
     % Define Fresnel Propagtor
-    dx = Lx/Mx;
+    dx = bench_params.Lx/bench_params.Mx;
+    dy = bench_params.Ly/bench_params.My;
+    lambda = bench_params.lambda;
     % Define frequency axes
     fMax_x = 1/(2*dx);
-    df_x = 1/Lx;
+    df_x = 1/bench_params.Lx;
     fx = -fMax_x:df_x:fMax_x-df_x;
+    fMax_y = 1/(2*dy);
+    df_y = 1/bench_params.Ly;
+    %get single FY value based on the y slice (this saves a lot of memory)
+    FY_const = -fMax_y + (yslice_idx-1) * df_y;
     [FX,Z] = meshgrid(fx,z_values);
-    quad_phase = exp(-1i*pi*lambda.*((FX.^2).*Z));
-    z_phase = exp(2i*pi/lambda.*Z);
+    quad_phase = exp(-1i*pi*lambda.*((FX.^2 + FY_const^2).*Z));
+    z_phase = exp((2i*pi/lambda).*Z);
     H = quad_phase .* z_phase;
     % H = exp(2i*pi.*Z./lambda) .* exp(-1i*pi*lambda.*Z.*(FX.^2));
 end
 
-function propped = fresnel_prop_xz(hol_slice, z_values, bench_params)
-    %{
-    Propagate an image (assumed to start in real space) a distance zf.
-    %}
+function propped = fresnel_prop_xz(hol, yslice_idx, z_values, bench_params)
+    % memory-efficient function to propagate y-slice of a hologram a range
+    % of distances z_values. The resulting matrix is of dimension len(x) x
+    % len(z)
     arguments
-        hol_slice %y slice of a fresnel hologram
-        z_values
+        hol % 2D fresnel hologram
+        yslice_idx % index of desired y-slice to propagate
+        z_values % range of z values to propagate over
         bench_params
     end
+    %get desired slice of hologram
+    hol_slice = transpose(hol.intensity(:,yslice_idx));
     %repeat input y slice to broadcast across z values
     num_z_vals = size(z_values);
     im_xz = repmat(hol_slice, [num_z_vals(2), 1]);
     %generate fresnel propagator
-    H = fresnel_propagator_xz(z_values, bench_params.Lx, ...
-                              bench_params.Mx, bench_params.lambda);
+    H = fresnel_propagator_xz(z_values, yslice_idx, bench_params);
     % Propagate
     im_size = size(im_xz);
     %ft only in x axis (ax=2) 
     % this is because z axis is just used for broadcasting, not propagating
-    ft = fft(im_xz, im_size(2), 2);
-    proppedFt = ft .* fftshift(H);
+    ft = fftshift(fft(im_xz, im_size(2), 2), 2);
+    proppedFt = ft .* H;
     %ifft and ifftshift should also be only in x axis (ax=2)
-    propped = ifftshift(transpose(ifft(proppedFt, im_size(2), 2)), 2);
+    propped = transpose(ifft(ifftshift(proppedFt, 2), im_size(2), 2));
 end
 
 function plane_struct = FT(image_struct)
