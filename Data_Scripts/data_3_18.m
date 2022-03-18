@@ -11,10 +11,11 @@ addpath('./Data_Functions/');
 %Measurements from the camera (units mm)
 
 base_folder = '../Images/Bench_Images/3-18-22/';
-crop = [365 565 660 860];
-im1 = open_im(strcat(base_folder, 'im1-20um-0deg.png'));
-im2 = open_im(strcat(base_folder, 'im2-20um-60deg.png'));
-im3 = open_im(strcat(base_folder, 'im3-20um-120deg.png'));
+%crop = [365 565 660 860];
+crop = [435 635 550 750];
+im1 = open_im(strcat(base_folder, 'im1-5um-0deg.png'));
+im2 = open_im(strcat(base_folder, 'im2-5um-60deg.png'));
+im3 = open_im(strcat(base_folder, 'im3-5um-120deg.png'));
 h1 = image_data_struct(im1(crop(1):crop(2), crop(3):crop(4)), 0);
 h2 = image_data_struct(im2(crop(1):crop(2), crop(3):crop(4)), 2*pi/3);
 h3 = image_data_struct(im3(crop(1):crop(2), crop(3):crop(4)), 4*pi/3);
@@ -27,7 +28,7 @@ PARAMS = bench_params(delta_x, delta_y);
 % plot_im(h2, 'Image 2: \theta = 2\pi/3');
 % subplot(1, 3, 3)
 % plot_im(h3, 'Image 3: \theta = 4\pi/3');
-c_hol = hol_from_data([h1 h2 h3]);
+% c_hol = hol_from_data([h1 h2 h3]);
 % plot_im(c_hol, "Complex Hologram");
 % hfig = figure;
 % pos = get(hfig,'position');
