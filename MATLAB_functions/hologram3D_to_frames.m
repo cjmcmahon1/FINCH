@@ -1,4 +1,4 @@
-function F = hologram3D_to_frames(hologram_struct)
+function F = hologram3D_to_frames(hologram_struct, label)
     %Convert a 3D hologram into a Frames object, which can be used to
     %generate movies/scans of the resulting fresnel propagated image over
     %various z distances. (need to add z label on each frame for clarity)
@@ -15,9 +15,10 @@ function F = hologram3D_to_frames(hologram_struct)
         xlabel('x (mm)');
         ylabel('y (mm)');
         z_label = sprintf('z=%.2f', z_vals(i));
+        title(label);
         text(x_vals(8), x_vals(8), z_label, 'BackgroundColor', 'white');
         colorbar();
         drawnow
-        F(i) = getframe;
+        F(i) = getframe(gcf);
     end
 end

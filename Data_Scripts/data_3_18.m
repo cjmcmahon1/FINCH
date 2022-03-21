@@ -31,6 +31,9 @@ PARAMS_5um  = bench_params(delta_x_5um, delta_y_5um);
 delta_y_20um = crop_20um(2) - crop_20um(1) + 1;
 delta_x_20um = crop_20um(4) - crop_20um(3) + 1;
 PARAMS_20um  = bench_params(delta_x_20um, delta_y_20um);
+%make complex holograms
+c_hol_5um = hol_from_data([h1_5um h2_5um h3_5um]);
+c_hol_20um = hol_from_data([h1_20um h2_20um h3_20um]);
 %make plots of the individual images + the complex hologram
 flag_plot_hologram = true;
 if flag_plot_hologram
@@ -45,7 +48,6 @@ if flag_plot_hologram
     plot_im(h2_5um, '5um Image 2: \theta = 2\pi/3');
     subplot(2, 2, 3);
     plot_im(h3_5um, '5um Image 3: \theta = 4\pi/3');
-    c_hol = hol_from_data([h1 h2 h3]);
     subplot(2, 2, 4);
     plot_im(c_hol_5um, "5um abs(Complex Hologram)");
     %20um hologram plot
@@ -59,32 +61,85 @@ if flag_plot_hologram
     plot_im(h2_20um, '20um Image 2: \theta = 2\pi/3');
     subplot(2, 2, 3);
     plot_im(h3_20um, '20um Image 3: \theta = 4\pi/3');
-    c_hol = hol_from_data([h1 h2 h3]);
     subplot(2, 2, 4);
     plot_im(c_hol_20um, "20um abs(Complex Hologram)");
 end
-% z_vals = linspace(-15, 15, 400); %focus seems to be ~-8mm
-% data_hol_3d = hologram3D(c_hol, z_vals, PARAMS);
-% data_frames = hologram3D_to_frames(data_hol_3d);
-% midpt = round(delta_y / 2);
-% hol3d_xz_im = squeeze(abs(data_hol_3d.intensity(:,midpt,:)));
-% hol3d_ft = FT(data_hol_3d);
-% hol3d_ft_im = squeeze(abs(hol3d_ft.intensity(:,midpt,:)));
-% subplot(1, 2, 1);
-% imagesc(data_hol_3d.z, data_hol_3d.x, hol3d_xz_im);
-% colormap('gray');
-% xlabel('distance from z focus (mm)');
-% ylabel('x (mm)');
-% title('Full 3D PSF');
-% colorbar();
-% subplot(1, 2, 2);
-% colormap('gray');
-% imagesc(hol3d_ft.fz, hol3d_ft.fx, hol3d_ft_im);
-% xlabel('f_z (mm^{-1})');
-% ylabel('f_x (mm^{-1})');
-% title ('FT of Full 3D PSF');
-% colorbar();
-movie(data_frames, 5, 40);
+flag_gen_3dhol = true;
+if flag_gen_3dhol
+    figure('Name', 'Generating Movie Scans')
+    z_vals = linspace(-15, 15, 400); %focus seems to be ~-8mm
+    %5um 3D hologram
+    data_hol_3d_5um = hologram3D(c_hol_5um, z_vals, PARAMS_5um);
+    %convert to movie frames
+    data_frames_5um = hologram3D_to_frames(data_hol_3d_5um, '5um Pinhole');
+    %20um 3D hologram
+    data_hol_3d_20um = hologram3D(c_hol_20um, z_vals, PARAMS_20um);
+    %convert to movie frames
+    data_frames_20um = hologram3D_to_frames(data_hol_3d_20um, ...
+                                            '20um Pinhole');
+    close
+end
+flag_show_movie = false;
+flag_save_movie = true;
+if flag_show_movie 
+    figure('Name', '5um Pinhole Z-scan Movie')
+    movie(data_frames_5um, 5, 40);
+    figure('Name', '20um Pinhole Z-scan Movie')
+    movie(data_frames_20um, 5, 40);
+end
+if flag_save_movie
+    v_5um = VideoWriter('../Video/5um_pinhole.avi');
+    open(v_5um);
+    writeVideo(v_5um, data_frames_5um);
+    close(v_5um);
+    v_20um = VideoWriter('../Video/20um_pinhole.avi');
+    open(v_20um);
+    writeVideo(v_20um, data_frames_20um);
+    close(v_20um);
+end
+flag_show_PSF = false;
+if flag_show_PSF
+    %5um PSF Plot
+    midpt_5um = round(delta_y_5um / 2);
+    hol3d_im_5um = squeeze(abs(data_hol_3d_5um.intensity(:,midpt_5um,:)));
+    hol3d_ft_5um = FT(data_hol_3d_5um);
+    hol3d_ft_im_5um = squeeze(abs(hol3d_ft_5um.intensity(:,midpt_5um,:)));
+    figure('Name', '5um 3D PSF')
+    subplot(1, 2, 1);
+    imagesc(data_hol_3d_5um.z, data_hol_3d_5um.x, hol3d_im_5um);
+    colormap('gray');
+    xlabel('distance from z focus (mm)');
+    ylabel('x (mm)');
+    title('Full 3D PSF');
+    colorbar();
+    subplot(1, 2, 2);
+    colormap('gray');
+    imagesc(hol3d_ft_5um.fz, hol3d_ft_5um.fx, hol3d_ft_im_5um);
+    xlabel('f_z (mm^{-1})');
+    ylabel('f_x (mm^{-1})');
+    title ('FT of Full 3D PSF');
+    colorbar();
+    %20um PSF Plot
+    midpt_20um = round(delta_y_20um / 2);
+    hol3d_im_20um = squeeze(abs(data_hol_3d_20um.intensity(:,midpt_20um,:)));
+    hol3d_ft_20um = FT(data_hol_3d_20um);
+    hol3d_ft_im_20um = squeeze(abs(hol3d_ft_20um.intensity(:,midpt_20um,:)));
+    figure('Name', '20um 3D PSF')
+    subplot(1, 2, 1);
+    imagesc(data_hol_3d_20um.z, data_hol_3d_20um.x, hol3d_im_20um);
+    colormap('gray');
+    xlabel('distance from z focus (mm)');
+    ylabel('x (mm)');
+    title('Full 3D PSF');
+    colorbar();
+    subplot(1, 2, 2);
+    colormap('gray');
+    imagesc(hol3d_ft_20um.fz, hol3d_ft_20um.fx, hol3d_ft_im_20um);
+    xlabel('f_z (mm^{-1})');
+    ylabel('f_x (mm^{-1})');
+    title ('FT of Full 3D PSF');
+    colorbar();
+end
 
 function cropped = crop(im, crop_array)
     %return a cropped image based on input array of 4 indices
