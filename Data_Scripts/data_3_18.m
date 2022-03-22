@@ -88,6 +88,9 @@ if flag_show_movie
     movie(data_frames_20um, 5, 40);
 end
 if flag_save_movie
+    if not(isfolder('../Video'))
+        mkdir('../Video')
+    end
     v_5um = VideoWriter('../Video/5um_pinhole.avi');
     open(v_5um);
     writeVideo(v_5um, data_frames_5um);
