@@ -35,7 +35,7 @@ PARAMS_20um  = bench_params(delta_x_20um, delta_y_20um);
 c_hol_5um = hol_from_data([h1_5um h2_5um h3_5um]);
 c_hol_20um = hol_from_data([h1_20um h2_20um h3_20um]);
 %make plots of the individual images + the complex hologram
-flag_plot_hologram = true;
+flag_plot_hologram = false;
 if flag_plot_hologram
     %5um hologram plot
     hfig_5um = figure('Name', '5um Hologram Plot');
@@ -64,11 +64,11 @@ if flag_plot_hologram
     subplot(2, 2, 4);
     plot_im(c_hol_20um, "20um abs(Complex Hologram)");
 end
-flag_gen_3dhol = true;
+flag_gen_3dhol = false;
 if flag_gen_3dhol
     figure('Name', 'Generating Movie Scans')
     z_vals = linspace(-15, 15, 400); %focus seems to be ~-8mm
-    %5um 3D hologram
+    %5um 3D hologram focus ~-8.56mm (frame 145)
     data_hol_3d_5um = hologram3D(c_hol_5um, z_vals, PARAMS_5um);
     %convert to movie frames
     data_frames_5um = hologram3D_to_frames(data_hol_3d_5um, '5um Pinhole');
@@ -79,14 +79,30 @@ if flag_gen_3dhol
                                             '20um Pinhole');
     close
 end
+
+flag_show_focus = true;
+if flag_show_focus
+    focus = -8.56;
+    focused_5um = gen_hol_im(c_hol_5um, focus, PARAMS_5um);
+    focused_20um = gen_hol_im(c_hol_20um, focus, PARAMS_20um);
+    crop_params_5um = [70 130 70 130];
+    cropped_5um = crop_struct(focused_5um, crop_params_5um);
+    figure('Name', 'Focused Plot 5um');
+    label_5um = sprintf('Focused 5um Pinhole (z=%.2f)', focus);
+    plot_im(cropped_5um, label_5um);
+    figure('Name', 'Focused Plot 20um');
+    label_20um = sprintf('Focused 20um Pinhole (z=%.2f)', focus);
+    plot_im(focused_20um, label_20um);
+end
+
 flag_show_movie = false;
-flag_save_movie = true;
 if flag_show_movie 
     figure('Name', '5um Pinhole Z-scan Movie')
     movie(data_frames_5um, 5, 40);
     figure('Name', '20um Pinhole Z-scan Movie')
     movie(data_frames_20um, 5, 40);
 end
+flag_save_movie = false;
 if flag_save_movie
     if not(isfolder('../Video'))
         mkdir('../Video')
@@ -105,11 +121,14 @@ if flag_show_PSF
     %5um PSF Plot
     midpt_5um = round(delta_y_5um / 2);
     hol3d_im_5um = squeeze(abs(data_hol_3d_5um.intensity(:,midpt_5um,:)));
+    hol3d_im_5um = hol3d_im_5um(60:140,:); %crop PSF for visibility
     hol3d_ft_5um = FT(data_hol_3d_5um);
     hol3d_ft_im_5um = squeeze(abs(hol3d_ft_5um.intensity(:,midpt_5um,:)));
+    hol3d_ft_im_5um = hol3d_ft_im_5um(:,250:end); %crop FT
     figure('Name', '5um 3D PSF')
     subplot(1, 2, 1);
-    imagesc(data_hol_3d_5um.z, data_hol_3d_5um.x, hol3d_im_5um);
+    imagesc(data_hol_3d_5um.z, data_hol_3d_5um.x(60:140), ...
+            hol3d_im_5um);
     colormap('gray');
     xlabel('distance from z focus (mm)');
     ylabel('x (mm)');
@@ -117,7 +136,8 @@ if flag_show_PSF
     colorbar();
     subplot(1, 2, 2);
     colormap('gray');
-    imagesc(hol3d_ft_5um.fz, hol3d_ft_5um.fx, hol3d_ft_im_5um);
+    imagesc(hol3d_ft_5um.fz(250:end), hol3d_ft_5um.fx(60:140), ...
+            hol3d_ft_im_5um);
     xlabel('f_z (mm^{-1})');
     ylabel('f_x (mm^{-1})');
     title ('FT of Full 3D PSF');
@@ -127,6 +147,7 @@ if flag_show_PSF
     hol3d_im_20um = squeeze(abs(data_hol_3d_20um.intensity(:,midpt_20um,:)));
     hol3d_ft_20um = FT(data_hol_3d_20um);
     hol3d_ft_im_20um = squeeze(abs(hol3d_ft_20um.intensity(:,midpt_20um,:)));
+    hol3d_ft_im_20um = hol3d_ft_im_20um(60:140,250:end); %crop FT
     figure('Name', '20um 3D PSF')
     subplot(1, 2, 1);
     imagesc(data_hol_3d_20um.z, data_hol_3d_20um.x, hol3d_im_20um);
@@ -137,7 +158,8 @@ if flag_show_PSF
     colorbar();
     subplot(1, 2, 2);
     colormap('gray');
-    imagesc(hol3d_ft_20um.fz, hol3d_ft_20um.fx, hol3d_ft_im_20um);
+    imagesc(hol3d_ft_20um.fz(250:end), hol3d_ft_20um.fx(60:140), ...
+            hol3d_ft_im_20um);
     xlabel('f_z (mm^{-1})');
     ylabel('f_x (mm^{-1})');
     title ('FT of Full 3D PSF');
@@ -148,4 +170,22 @@ function cropped = crop(im, crop_array)
     %return a cropped image based on input array of 4 indices
     cropped = im(crop_array(1):crop_array(2), ...
                  crop_array(3):crop_array(4));
+end
+
+function cropped_struct = crop_struct(im_struct, crop_array)
+    if isfield(im_struct, 'x')
+        x_index = 'x';
+        y_index = 'y';
+    elseif isfield(im_struct, 'fx')
+        x_index = 'fx';
+        y_index = 'fy';
+    end
+    crop_int = im_struct.intensity(crop_array(1):crop_array(2), ...
+                                   crop_array(3):crop_array(4));
+    crop_x = im_struct.(x_index);
+    crop_y = im_struct.(y_index);
+    crop_x = crop_x(crop_array(1):crop_array(2));
+    crop_y = crop_y(crop_array(3):crop_array(4));
+    cropped_struct = struct('intensity', crop_int, ...
+                            x_index, crop_x, y_index, crop_y);
 end
