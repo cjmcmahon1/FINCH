@@ -29,8 +29,8 @@ const_bkg = struct('intensity', abs(p1.field).^2 + abs(p2.field).^2, ...
 hol = complex_hologram(p1, p2, 3);
 hol_mirror = mirror_hologram(p1, p2, 3);
 % make a 3D hologram by Fresnel propagating various z distances
-%z_vals = linspace(z1/2 - 0.25, z1/2+0.25, 100);
-z_vals = linspace (z1/2 - 0.25, z2/2 + 0.25, 100);
+z_vals = linspace(z1/2 - 0.25, z1/2+0.25, 100);
+%z_vals = linspace (z1/2 - 0.25, z2/2 + 0.25, 100);
 num_z_vals = size(z_vals);
 num_z_vals = num_z_vals(2);
 
@@ -44,11 +44,11 @@ if flag_calc_hologram
     hol3d_mirror_xz_im = squeeze(abs(hol3d_mirror.intensity(:,midpt,:)));
     hol3d_bkg_xz_im = squeeze(abs(hol3d_bkg.intensity(:,midpt,:)));
     hol3d_ft = FT(hol3d);
-    hol3d_ft_im = squeeze(imag(hol3d_ft.intensity(:,midpt,:)));
+    hol3d_ft_im = squeeze(abs(hol3d_ft.intensity(:,midpt,:)));
     hol3d_mirror_ft = FT(hol3d_mirror);
-    hol3d_mirror_ft_im = squeeze(imag(hol3d_mirror_ft.intensity(:,midpt,:)));
+    hol3d_mirror_ft_im = squeeze(abs(hol3d_mirror_ft.intensity(:,midpt,:)));
     hol3d_bkg_ft = FT(hol3d_bkg);
-    hol3d_bkg_ft_im = squeeze(imag(hol3d_bkg_ft.intensity(:,midpt,:)));
+    hol3d_bkg_ft_im = squeeze(abs(hol3d_bkg_ft.intensity(:,midpt,:)));
 end
 
 %plot the image 3D PSF and FT
