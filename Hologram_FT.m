@@ -23,6 +23,8 @@ z1 = -separation/2; %mm
 z2 = separation/2; %mm
 p1 = propagate_init(z1, PARAMS);
 p2 = propagate_init(z2, PARAMS);
+const_bkg = struct('intensity', abs(p1.field).^2 + abs(p2.field).^2, ...
+                   'x', p1.x, 'y', p1.y);
 %generate the complex-valued hologram
 hol = complex_hologram(p1, p2, 3);
 hol_mirror = mirror_hologram(p1, p2, 3);
@@ -33,46 +35,73 @@ num_z_vals = size(z_vals);
 num_z_vals = num_z_vals(2);
 
 %full 3D PSF calculation
-hol3d = hologram3D(hol, z_vals, PARAMS);
-hol3d_mirror = hologram3D(hol_mirror, z_vals, PARAMS);
-hol3d_xz_im = squeeze(abs(hol3d.intensity(:,midpt,:)));
-hol3d_mirror_xz_im = squeeze(abs(hol3d_mirror.intensity(:,midpt,:)));
-hol3d_ft = FT(hol3d);
-hol3d_ft_im = squeeze(abs(hol3d_ft.intensity(:,midpt,:)));
-hol3d_mirror_ft = FT(hol3d_mirror);
-hol3d_mirror_ft_im = squeeze(abs(hol3d_mirror_ft.intensity(:,midpt,:)));
+flag_calc_hologram = true;
+if flag_calc_hologram
+    hol3d = hologram3D(hol, z_vals, PARAMS);
+    hol3d_mirror = hologram3D(hol_mirror, z_vals, PARAMS);
+    hol3d_bkg = hologram3D(const_bkg, z_vals, PARAMS);
+    hol3d_xz_im = squeeze(abs(hol3d.intensity(:,midpt,:)));
+    hol3d_mirror_xz_im = squeeze(abs(hol3d_mirror.intensity(:,midpt,:)));
+    hol3d_bkg_xz_im = squeeze(abs(hol3d_bkg.intensity(:,midpt,:)));
+    hol3d_ft = FT(hol3d);
+    hol3d_ft_im = squeeze(imag(hol3d_ft.intensity(:,midpt,:)));
+    hol3d_mirror_ft = FT(hol3d_mirror);
+    hol3d_mirror_ft_im = squeeze(imag(hol3d_mirror_ft.intensity(:,midpt,:)));
+    hol3d_bkg_ft = FT(hol3d_bkg);
+    hol3d_bkg_ft_im = squeeze(imag(hol3d_bkg_ft.intensity(:,midpt,:)));
+end
 
 %plot the image 3D PSF and FT
-subplot(2, 2, 1);
+subplot(3, 2, 1);
 imagesc(hol3d.z, hol3d.x, hol3d_xz_im);
 colormap('gray');
 xlabel('distance from z focus (mm)');
 ylabel('x (mm)');
 title('3D PSF');
 colorbar();
-subplot(2, 2, 2);
+subplot(3, 2, 2);
 colormap('gray');
-imagesc(hol3d_ft.fz, hol3d_ft.fx, hol3d_ft_im);
+imagesc(fftshift(hol3d_ft.fz), ...
+        hol3d_ft.fx, fftshift(hol3d_ft_im, 2));
 xlabel('f_z (mm^{-1})');
 ylabel('f_x (mm^{-1})');
 title ('FT of 3D PSF');
 colorbar();
 
 %plot the mirror image 3D PSF and FT
-subplot(2, 2, 3);
+subplot(3, 2, 3);
 imagesc(hol3d_mirror.z, hol3d_mirror.x, hol3d_mirror_xz_im);
 colormap('gray');
 xlabel('distance from z focus (mm)');
 ylabel('x (mm)');
 title('Mirror Image 3D PSF');
 colorbar();
-subplot(2, 2, 4);
+subplot(3, 2, 4);
 colormap('gray');
-imagesc(hol3d_mirror_ft.fz, hol3d_mirror_ft.fx, hol3d_mirror_ft_im);
+imagesc(fftshift(hol3d_mirror_ft.fz), ...
+        hol3d_mirror_ft.fx, fftshift(hol3d_mirror_ft_im, 2));
 xlabel('f_z (mm^{-1})');
 ylabel('f_x (mm^{-1})');
 title ('FT of Mirror Image 3D PSF');
 colorbar();
+
+%plot the constant background 3D PSF and FT
+subplot(3, 2, 5);
+imagesc(hol3d_bkg.z, hol3d_bkg.x, hol3d_bkg_xz_im);
+colormap('gray');
+xlabel('distance from z focus (mm)');
+ylabel('x (mm)');
+title('Constant Background 3D PSF');
+colorbar();
+subplot(3, 2, 6);
+colormap('gray');
+imagesc(fftshift(hol3d_bkg_ft.fz), ...
+        hol3d_bkg_ft.fx, fftshift(hol3d_bkg_ft_im, 2));
+xlabel('f_z (mm^{-1})');
+ylabel('f_x (mm^{-1})');
+title ('FT of Constant Background 3D PSF');
+colorbar();
+
 % propagate in the xz plane to speed up the calculation of 3D PSFs
 % z_propped = fresnel_prop_xz(hol, midpt, z_vals, PARAMS);
 % quick_ft = abs(fftshift(fft2(z_propped)));
