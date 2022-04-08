@@ -16,7 +16,7 @@ function F = hologram3D_to_frames(hologram_struct, label)
         ylabel('y (mm)');
         z_label = sprintf('z=%.2f', z_vals(i));
         title(label);
-        text(x_vals(12), x_vals(12), z_label, 'BackgroundColor', 'white');
+        text(x_vals(22), x_vals(3), z_label, 'BackgroundColor', 'white');
         colorbar();
         drawnow
         F(i) = getframe(gcf);
