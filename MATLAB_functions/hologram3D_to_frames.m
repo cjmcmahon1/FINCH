@@ -4,6 +4,8 @@ function F = hologram3D_to_frames(hologram_struct, label)
     %various z distances. (need to add z label on each frame for clarity)
     z_vals = hologram_struct.z;
     x_vals = hologram_struct.x;
+    x_size = size(x_vals);
+    x_label_idx = round(x_size(2) / 10);
     hol_max = max(abs(hologram_struct.intensity(:)));
     F(length(z_vals)) = struct('cdata',[],'colormap',[]);
     for i = 1:length(z_vals)
@@ -16,7 +18,8 @@ function F = hologram3D_to_frames(hologram_struct, label)
         ylabel('y (mm)');
         z_label = sprintf('z=%.2f', z_vals(i));
         title(label);
-        text(x_vals(22), x_vals(3), z_label, 'BackgroundColor', 'white');
+        text(x_vals(x_label_idx), x_vals(x_label_idx), ...
+            z_label, 'BackgroundColor', 'white');
         colorbar();
         drawnow
         F(i) = getframe(gcf);
