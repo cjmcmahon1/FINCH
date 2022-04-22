@@ -8,11 +8,11 @@ addpath('./Data_Functions/');
 
 base_folder = '../Images/Bench_Images/4-22-22/';
 %tuned crop parameters to center the images
-crop1 = [1 1080 1 1440];
+crop1 = [450 650 600 800];
 %open images
-im1 = open_im(strcat(base_folder, 'usaf-0deg.png'));
-im2 = open_im(strcat(base_folder, 'usaf-60deg.png'));
-im3 = open_im(strcat(base_folder, 'usaf-120deg.png'));
+im1 = open_im(strcat(base_folder, '20um-0deg.png'));
+im2 = open_im(strcat(base_folder, '20um-60deg.png'));
+im3 = open_im(strcat(base_folder, '20um-120deg.png'));
 %convert images into data structures
 % figure(1);
 % imagesc(crop(im1, crop1));
@@ -46,7 +46,7 @@ end
 flag_gen_3dhol = true;
 if flag_gen_3dhol
     figure('Name', 'Generating Movie Scans')
-    z_vals = linspace(-50, 50, 400); %focus seems to be ~-8mm
+    z_vals = linspace(-20, 0, 300); %focus seems to be ~-8mm
     %noLP 3D hologram focus ~-8.56mm (frame 145)
     data_hol_3d = hologram3D(c_hol, z_vals, PARAMS);
     %convert to movie frames
