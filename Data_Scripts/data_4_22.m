@@ -8,11 +8,13 @@ addpath('./Data_Functions/');
 
 base_folder = '../Images/Bench_Images/4-22-22/';
 %tuned crop parameters to center the images
-crop1 = [450 650 600 800];
+% crop1 = [470 670 625 825]; %20um crop params
+% crop1 = [415 615 520 720]; %5um crop params
+crop1 = [1 1080 1 1440];   %usaf crop params
 %open images
-im1 = open_im(strcat(base_folder, '20um-0deg.png'));
-im2 = open_im(strcat(base_folder, '20um-60deg.png'));
-im3 = open_im(strcat(base_folder, '20um-120deg.png'));
+im1 = open_im(strcat(base_folder, 'usaf-0deg.png'));
+im2 = open_im(strcat(base_folder, 'usaf-60deg.png'));
+im3 = open_im(strcat(base_folder, 'usaf-120deg.png'));
 %convert images into data structures
 % figure(1);
 % imagesc(crop(im1, crop1));
@@ -26,8 +28,14 @@ delta_x = crop1(4) - crop1(3) + 1;
 PARAMS  = bench_params(delta_x, delta_y);
 %make complex holograms
 c_hol = hol_from_data([h1 h2 h3]);
-%make plots of the individual images + the complex hologram
+%flags to specify what plots to make
 flag_plot_hologram = true;
+flag_gen_3dhol     = true;
+flag_show_focus    = false;
+flag_show_movie    = true;
+flag_save_movie    = false;
+flag_show_PSF      = false;
+%make plots of the individual images + the complex hologram
 if flag_plot_hologram
     %noLP hologram plot
     hfig = figure('Name', 'LED Hologram Plot');
@@ -43,10 +51,10 @@ if flag_plot_hologram
     subplot(2, 2, 4);
     plot_im(c_hol, "abs(Complex Hologram)");
 end
-flag_gen_3dhol = true;
+
 if flag_gen_3dhol
     figure('Name', 'Generating Movie Scans')
-    z_vals = linspace(-20, 0, 300); %focus seems to be ~-8mm
+    z_vals = linspace(-20, 20, 30); %focus seems to be ~-8mm
     %noLP 3D hologram focus ~-8.56mm (frame 145)
     data_hol_3d = hologram3D(c_hol, z_vals, PARAMS);
     %convert to movie frames
@@ -54,45 +62,44 @@ if flag_gen_3dhol
     close
 end
 
-flag_show_focus = false;
 if flag_show_focus
-    focus = -8.56;
+    focus = -13.58;
     focused = gen_hol_im(c_hol, focus, PARAMS);
-    crop_params = [70 130 70 130];
+%     crop_params = [70 130 70 130];
+    crop_params = [1 1080 1 1440];
     cropped = crop_struct(focused, crop_params);
     figure('Name', 'Focused Plots');
     label = sprintf('Focused noLP Pinhole (z=%.2f)', focus);
     plot_im(cropped, label);
 end
 
-flag_show_movie = true;
 if flag_show_movie 
-    figure('Name', 'noLP Pinhole Z-scan Movie')
+    figure('Name', 'Z-scan Movie')
     movie(data_frames, 5, 40);
 end
-flag_save_movie = false;
+
 if flag_save_movie
     if not(isfolder('../Video'))
         mkdir('../Video')
     end
-    v_noLP = VideoWriter('../Video/noLP_pinhole.avi');
+    v_noLP = VideoWriter('../Video/5um_4-22.avi');
     open(v_noLP);
     writeVideo(v_noLP, data_frames);
     close(v_noLP);
 end
-flag_show_PSF = false;
+
 if flag_show_PSF
     %noLP PSF Plot
-    midpt_noLP = round(delta_y / 2);
-    hol3d_im_noLP = squeeze(abs(data_hol_3d.intensity(:,midpt_noLP,:)));
-    hol3d_im_noLP = hol3d_im_noLP(60:140,:); %crop PSF for visibility
-    hol3d_ft_noLP = FT(data_hol_3d);
-    hol3d_ft_im_noLP = squeeze(abs(hol3d_ft_noLP.intensity(:,midpt_noLP,:)));
-    hol3d_ft_im_noLP = hol3d_ft_im_noLP(:,250:end); %crop FT
+    midpt = round(delta_y / 2);
+    hol3d_im = squeeze(abs(data_hol_3d.intensity(:,midpt,:)));
+    hol3d_im = hol3d_im(:,:); %crop PSF for visibility
+    hol3d_ft = FT(data_hol_3d);
+    hol3d_ft_im = squeeze(abs(hol3d_ft.intensity(:,midpt,:)));
+    hol3d_ft_im = hol3d_ft_im(:,:); %crop FT
     figure('Name', 'noLP 3D PSF')
     subplot(1, 2, 1);
-    imagesc(data_hol_3d.z, data_hol_3d.x(60:140), ...
-            hol3d_im_noLP);
+    imagesc(data_hol_3d.z, data_hol_3d.x(:), ...
+            hol3d_im);
     colormap('gray');
     xlabel('distance from z focus (mm)');
     ylabel('x (mm)');
@@ -100,8 +107,7 @@ if flag_show_PSF
     colorbar();
     subplot(1, 2, 2);
     colormap('gray');
-    imagesc(hol3d_ft_noLP.fz(250:end), hol3d_ft_noLP.fx(60:140), ...
-            hol3d_ft_im_noLP);
+    imagesc(hol3d_ft.fz(:), hol3d_ft.fx(:), hol3d_ft_im);
     xlabel('f_z (mm^{-1})');
     ylabel('f_x (mm^{-1})');
     title ('FT of Full 3D PSF');
