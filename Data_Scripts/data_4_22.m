@@ -20,8 +20,8 @@ im3 = open_im(strcat(base_folder, 'usaf-120deg.png'));
 % imagesc(crop(im1, crop1));
 
 h1 = image_data_struct(crop(im1, crop1), 0);
-h2 = image_data_struct(crop(im2, crop1), 2*pi/3);
-h3 = image_data_struct(crop(im3, crop1), 4*pi/3);
+h2 = image_data_struct(crop(im2, crop1), 1*pi/3);
+h3 = image_data_struct(crop(im3, crop1), 2*pi/3);
 %calculate relevant lengths based on the cropped image size
 delta_y = crop1(2) - crop1(1) + 1;
 delta_x = crop1(4) - crop1(3) + 1;
