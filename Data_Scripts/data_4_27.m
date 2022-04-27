@@ -12,9 +12,9 @@ base_folder = '../Images/Bench_Images/4-27-22/';
 % crop1 = [415 615 520 720]; %5um crop params
 crop1 = [1 1080 1 1440];   %usaf crop params
 %open images
-im1 = open_im(strcat(base_folder, '5um-0deg.png'));
-im2 = open_im(strcat(base_folder, '5um-60deg.png'));
-im3 = open_im(strcat(base_folder, '5um-120deg.png'));
+im1 = open_im(strcat(base_folder, '5um-0deg-2.png'));
+im2 = open_im(strcat(base_folder, '5um-60deg-2.png'));
+im3 = open_im(strcat(base_folder, '5um-120deg-2.png'));
 %convert images into data structures
 % figure(1);
 % imagesc(crop(im1, crop1));
@@ -24,7 +24,7 @@ h2 = image_data_struct(crop(im2, crop1), 2*pi/3);
 h3 = image_data_struct(crop(im3, crop1), 4*pi/3);
 %calculate relevant lengths based on the cropped image size
 delta_y = crop1(2) - crop1(1) + 1;
-y_midpt = round(delta_y / 2) + 25; 
+y_midpt = round(delta_y / 2) + 230; 
 delta_x = crop1(4) - crop1(3) + 1;
 x_midpt = round(delta_x / 2) + 50; 
 PARAMS  = bench_params(delta_x, delta_y);
@@ -32,7 +32,7 @@ PARAMS  = bench_params(delta_x, delta_y);
 c_hol = hol_from_data([h1 h2 h3]);
 %flags to specify what plots to make
 flag_plot_hologram = false;
-flag_gen_3dhol     = true;
+flag_gen_3dhol     = false;
 flag_show_focus    = true;
 flag_show_movie    = false;
 flag_save_movie    = false;
@@ -56,7 +56,7 @@ end
 
 if flag_gen_3dhol
     figure('Name', 'Generating Movie Scans')
-    z_vals = linspace(-120,-40, 180); %focus seems to be ~-8mm
+    z_vals = linspace(-45,-35, 180); %focus seems to be ~-8mm
     %noLP 3D hologram focus ~-8.56mm (frame 145)
     data_hol_3d = hologram3D(c_hol, z_vals, PARAMS);
     %convert to movie frames
@@ -65,7 +65,7 @@ if flag_gen_3dhol
 end
 
 if flag_show_focus
-    focus = -75.75;
+    focus = -39.19;
     f_sz = 100; %focus size (number of pixels)
     focused = gen_hol_im(c_hol, focus, PARAMS);
 %     crop_params = [70 130 70 130];
