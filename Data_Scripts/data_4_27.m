@@ -8,13 +8,13 @@ addpath('./Data_Functions/');
 
 base_folder = '../Images/Bench_Images/4-27-22/';
 %tuned crop parameters to center the images
-% crop1 = [470 670 625 825]; %20um crop params
-% crop1 = [415 615 520 720]; %5um crop params
-crop1 = [1 1080 1 1440];   %usaf crop params
+% crop1 = [1 1080 1 1440];   %5mm crop params
+% crop1 = [405 1005 550 1150];   %20mm crop params
+crop1 = [450 1050 530 1130];   %75mm crop params
 %open images
-im1 = open_im(strcat(base_folder, '5um-0deg-2.png'));
-im2 = open_im(strcat(base_folder, '5um-60deg-2.png'));
-im3 = open_im(strcat(base_folder, '5um-120deg-2.png'));
+im1 = open_im(strcat(base_folder, '75um-0deg-2.png'));
+im2 = open_im(strcat(base_folder, '75um-60deg-2.png'));
+im3 = open_im(strcat(base_folder, '75um-120deg-2.png'));
 %convert images into data structures
 % figure(1);
 % imagesc(crop(im1, crop1));
@@ -24,19 +24,22 @@ h2 = image_data_struct(crop(im2, crop1), 2*pi/3);
 h3 = image_data_struct(crop(im3, crop1), 4*pi/3);
 %calculate relevant lengths based on the cropped image size
 delta_y = crop1(2) - crop1(1) + 1;
-y_midpt = round(delta_y / 2) + 230; 
+y_midpt = round(delta_y / 2); %20um
+% y_midpt = round(delta_y / 2) + 230; %5um
 delta_x = crop1(4) - crop1(3) + 1;
-x_midpt = round(delta_x / 2) + 50; 
+x_midpt = round(delta_x / 2); %20um
+% x_midpt = round(delta_x / 2) + 50; %5um 
 PARAMS  = bench_params(delta_x, delta_y);
 %make complex holograms
 c_hol = hol_from_data([h1 h2 h3]);
 %flags to specify what plots to make
+movie_label = '75um-largeDOF-4-27';
 flag_plot_hologram = false;
 flag_gen_3dhol     = false;
-flag_show_focus    = true;
+flag_show_focus    = false;
 flag_show_movie    = false;
-flag_save_movie    = false;
-flag_show_PSF      = true;
+flag_save_movie    = true;
+flag_show_PSF      = false;
 %make plots of the individual images + the complex hologram
 if flag_plot_hologram
     %noLP hologram plot
@@ -56,7 +59,7 @@ end
 
 if flag_gen_3dhol
     figure('Name', 'Generating Movie Scans')
-    z_vals = linspace(-45,-35, 180); %focus seems to be ~-8mm
+    z_vals = linspace(-180,180, 600); %choose z-range to propagate
     %noLP 3D hologram focus ~-8.56mm (frame 145)
     data_hol_3d = hologram3D(c_hol, z_vals, PARAMS);
     %convert to movie frames
@@ -89,7 +92,7 @@ if flag_save_movie
     if not(isfolder('../Video'))
         mkdir('../Video')
     end
-    v_noLP = VideoWriter('../Video/5um_4-27.avi');
+    v_noLP = VideoWriter(sprintf('../Video/%s.avi', movie_label));
     open(v_noLP);
     writeVideo(v_noLP, data_frames);
     close(v_noLP);
