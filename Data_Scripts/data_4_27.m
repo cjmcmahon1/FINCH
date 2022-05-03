@@ -8,16 +8,16 @@ addpath('./Data_Functions/');
 
 base_folder = '../Images/Bench_Images/4-27-22/';
 %tuned crop parameters to center the images
-% crop1 = [1 1080 1 1440];   %5mm crop params
+crop1 = [471 1071 460 1060];   %5mm crop params
 % crop1 = [405 1005 550 1150];   %20mm crop params
-crop1 = [450 1050 530 1130];   %75mm crop params
+% crop1 = [450 1050 530 1130];   %75mm crop params
 %open images
-im1 = open_im(strcat(base_folder, '75um-0deg-2.png'));
-im2 = open_im(strcat(base_folder, '75um-60deg-2.png'));
-im3 = open_im(strcat(base_folder, '75um-120deg-2.png'));
-%convert images into data structures
-% figure(1);
-% imagesc(crop(im1, crop1));
+im1 = open_im(strcat(base_folder, '5um-0deg-2.png'));
+im2 = open_im(strcat(base_folder, '5um-60deg-2.png'));
+im3 = open_im(strcat(base_folder, '5um-120deg-2.png'));
+% convert images into data structures
+figure(1);
+imagesc(crop(im1, crop1));
 
 h1 = image_data_struct(crop(im1, crop1), 0);
 h2 = image_data_struct(crop(im2, crop1), 2*pi/3);
@@ -33,13 +33,13 @@ PARAMS  = bench_params(delta_x, delta_y);
 %make complex holograms
 c_hol = hol_from_data([h1 h2 h3]);
 %flags to specify what plots to make
-movie_label = '75um-largeDOF-4-27';
-flag_plot_hologram = false;
-flag_gen_3dhol     = false;
-flag_show_focus    = false;
-flag_show_movie    = false;
+movie_label = '5um-imagIFTonly-zoom-4-27';
+flag_plot_hologram = true;
+flag_gen_3dhol     = true;
+flag_show_focus    = true;
+flag_show_movie    = true;
 flag_save_movie    = true;
-flag_show_PSF      = false;
+flag_show_PSF      = true;
 %make plots of the individual images + the complex hologram
 if flag_plot_hologram
     %noLP hologram plot
@@ -59,9 +59,14 @@ end
 
 if flag_gen_3dhol
     figure('Name', 'Generating Movie Scans')
-    z_vals = linspace(-180,180, 600); %choose z-range to propagate
-    %noLP 3D hologram focus ~-8.56mm (frame 145)
+    z_vals = linspace(-50,-30, 200); %choose z-range to propagate
     data_hol_3d = hologram3D(c_hol, z_vals, PARAMS);
+    f_sz = 100; %focus size (number of pixels)
+    cp = [y_midpt-f_sz y_midpt+f_sz x_midpt-f_sz x_midpt+f_sz];
+    data_hol_3d = struct('intensity', ...
+                  data_hol_3d.intensity(cp(3):cp(4),cp(1):cp(2),:), ...
+                  'x', data_hol_3d.x(cp(1):cp(2)), ...
+                  'y', data_hol_3d.y(cp(3):cp(4)), 'z', z_vals);
     %convert to movie frames
     data_frames = hologram3D_to_frames(data_hol_3d, 'LED Through Pinhole');
     close
