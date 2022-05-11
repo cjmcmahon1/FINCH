@@ -13,7 +13,7 @@ im = open_im(strcat(im_base_folder, 'led-0deg.png'));
 
 %other important bench measurements
 dz = 1.71; %mm
-mag = 1; %magnification of 4f setup
+mag = 5; %magnification of 4f setup
 NA = 25./200; %numerical aperture
 
 %our 2 source points have their in focus object plane dz=1.71mm apart. In
