@@ -18,7 +18,7 @@ function PARAMS = bench_params(num_x_pixels, num_y_pixels)
     PARAMS.lambda = 490e-6; %wavelength
     PARAMS.Mx = num_x_pixels;        %x samples
     PARAMS.My = num_y_pixels;        %y samples
-    PARAMS.NA = 0.1;        %numerical aperture
+    PARAMS.NA = 25./200;%0.1;        %numerical aperture
     PARAMS.x = X;
     PARAMS.y = Y;
 end

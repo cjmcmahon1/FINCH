@@ -6,15 +6,15 @@ addpath('./Data_Functions/');
 
 %Measurements from the camera (units mm)
 
-base_folder = '../Images/Bench_Images/5-3-22/';
+base_folder = '../Images/Bench_Images/5-6-22/';
 %tuned crop parameters to center the images
 crop1 = [1 1080 1 1440];   %5mm crop params
 % crop1 = [405 1005 550 1150];   %20mm crop params
 % crop1 = [450 1050 530 1130];   %75mm crop params
 %open images
-im1 = open_im(strcat(base_folder, 'led-0deg.png'));
-im2 = open_im(strcat(base_folder, 'led-60deg.png'));
-im3 = open_im(strcat(base_folder, 'led-120deg.png'));
+im1 = open_im(strcat(base_folder, 'led2-0deg.png'));
+im2 = open_im(strcat(base_folder, 'led2-60deg.png'));
+im3 = open_im(strcat(base_folder, 'led2-120deg.png'));
 % convert images into data structures
 figure(1);
 imagesc(crop(im1, crop1));
@@ -59,14 +59,12 @@ end
 
 if flag_gen_3dhol
     figure('Name', 'Generating Movie Scans')
-    z_vals = linspace(-30, 30, 250); %choose z-range to propagate
+    z_vals = linspace(-3, 3, 200); %choose z-range to propagate
     data_hol_3d = hologram3D(c_hol, z_vals, PARAMS);
-    f_sz = 100; %focus size (number of pixels)
-    cp = [y_midpt-f_sz y_midpt+f_sz x_midpt-f_sz x_midpt+f_sz];
     data_hol_3d = struct('intensity', ...
-                  data_hol_3d.intensity(cp(3):cp(4),cp(1):cp(2),:), ...
-                  'x', data_hol_3d.x(cp(1):cp(2)), ...
-                  'y', data_hol_3d.y(cp(3):cp(4)), 'z', z_vals);
+                  data_hol_3d.intensity, ...
+                  'x', data_hol_3d.x, ...
+                  'y', data_hol_3d.y, 'z', z_vals);
     %convert to movie frames
     data_frames = hologram3D_to_frames(data_hol_3d, 'LED Through Pinhole');
     close
