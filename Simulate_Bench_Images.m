@@ -8,16 +8,18 @@ addpath('./MATLAB_functions/'); %include helper functions
 addpath('./Data_Scripts/Data_Functions/');
 
 %load image
-im_base_folder = './Images/Bench_Images/Focused_Images/';
-im = open_im(strcat(im_base_folder, 'led-500um-focused.png'));
-crop_param = [1 1080 160 1240];
-crop_im = crop(im, crop_param);
-crop_im_hol = image_data_struct(crop_im, 0);
+% im_base_folder = './Images/Bench_Images/Focused_Images/';
+% im = open_im(strcat(im_base_folder, 'led-500um-focused.png'));
+% crop_param = [1 1080 160 1240];
+% crop_im = crop(im, crop_param);
+% crop_im_hol = image_data_struct(crop_im, 0);
 
+crop_im = load('./Images/Bench_Images/Focused_Images/I1.mat').I1;
+crop_im_hol = image_data_struct(spoke_im, 0);
 %other important bench measurements
 dz = 1.71; %mm
 mag = 5; %magnification of 4f setup
-NA = 25./200 * 5e-1; %numerical aperture (scaled down by 10 - sampling)
+NA = 25./200 * 1e-1; %numerical aperture (scaled down by 10 - sampling)
 
 %our 2 source points have their in focus object plane dz=1.71mm apart. In
 %the imaging plane, this corresponds to dz*mag^2, due to the axial
@@ -42,7 +44,7 @@ shifted3 = shifted_hologram(p1, p2, 4 * pi / 3);
 %generate the complex-valued hologram
 PSH = complex_hologram(p1, p2, 3);
 %normalize PSH to 1
-PSH_norm = sum(abs(PSH.intensity), 'all');
+PSH_norm = 1;%sum(abs(PSH.intensity), 'all');
 PSH.intensity = PSH.intensity ./ PSH_norm;
 %Fresnel propagate the complex hologram backwards. We propagate backwards
 %by z1/2 and forwards by z2/2 because of the phase doubling. We expect the
