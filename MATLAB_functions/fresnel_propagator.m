@@ -20,5 +20,5 @@ function H = fresnel_propagator(z, Lx, Mx, Ly, My, lambda)
     [FX,FY] = meshgrid(fx,fy);
     H = exp(2i*pi*z/lambda) .* exp(-1i*pi*lambda*z*(FX.^2 + FY.^2));
     H_norm = sum(abs(H), 'all');
-    H = H ./ H_norm
+    H = H ./ H_norm;
 end
