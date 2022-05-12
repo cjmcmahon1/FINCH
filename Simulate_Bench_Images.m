@@ -46,6 +46,7 @@ PSH = complex_hologram(p1, p2, 3);
 %normalize PSH to 1
 PSH_norm = sum(abs(PSH.intensity), 'all');
 PSH.intensity = PSH.intensity ./ PSH_norm;
+
 %Fresnel propagate the complex hologram backwards. We propagate backwards
 %by z1/2 and forwards by z2/2 because of the phase doubling. We expect the
 %image to be at z1/2, and the mirror image would be at z2/2 if it wasn't
@@ -109,6 +110,35 @@ plot_im(conv_bp, conv_bp_label, 'intensity');
 %difference = noisy_conv - conv
 % noisy_conv_bp = fresnel_prop(noisy_conv)
 % propped_difference = noisy_conv_bp - conv_bp
+noise = 1e-1;
+im_noisy = crop_im + poissrnd(noise, size(crop_im, 1), size(crop_im, 2));
+im_hol_noisy = image_data_struct(im_noisy, 0);
+conv_noisy = convolve(im_hol_noisy, PSH);
+hol_difference = abs(conv_noisy.intensity - conv.intensity);
+hol_diff_struct = struct('intensity', hol_difference, ...
+                         'x', conv_noisy.x, 'y', conv_noisy.y);
+conv_bp_noisy_intensity = fresnel_prop(conv_noisy.intensity, z1/2, PARAMS);
+conv_bp_noisy = struct('intensity', conv_bp_noisy_intensity, ...
+                   'x', im_hol_noisy.x, 'y', im_hol_noisy.y);
+bp_difference = abs(conv_bp_noisy_intensity - conv_bp_intensity);
+bp_diff_struct = struct('intensity', bp_difference, ...
+                        'x', conv_noisy.x, 'y', conv_noisy.y);
+%plot the noisy hologram and the difference.
+figure('Name', 'Noise Comparison');
+subplot(2, 3, 1);
+plot_im(conv, 'Noiseless Image');
+subplot(2, 3, 2);
+plot_im(conv_noisy, sprintf('Image With \\lambda = %2d', noise));
+subplot(2, 3, 3);
+plot_im(hol_diff_struct, 'Noiseless/Noisy Hologram Difference');
+subplot(2, 3, 4);
+conv_bp_label = sprintf('Propagated z=%3d um', z1/2*1e3);
+plot_im(conv_bp, conv_bp_label, 'intensity');
+subplot(2, 3, 5);
+conv_bp_noisy_label = sprintf('Noisy Propagated z=%3d um', z1/2*1e3);
+plot_im(conv_bp_noisy, conv_bp_noisy_label, 'intensity');
+subplot(2, 3, 6);
+plot_im(bp_diff_struct, 'Noiseless/Noisy Propagated Difference');
 
 %Function Definitions are in ./MATLAB_functions/
 
