@@ -17,7 +17,7 @@ function plot_im(image_struct, label, type, cax)
     elseif isfield(image_struct, 'field')
         field_type = 'field';
     else
-        fprintf("Struct did not have an 'intensity' or 'field' field");
+        fprintf("Struct did not have an 'intensity' or 'field' field\n");
     end
     if isfield(image_struct, 'x')
         ax_x = 'x';
@@ -26,7 +26,7 @@ function plot_im(image_struct, label, type, cax)
         ax_x = 'fx';
         ax_y = 'fy';
     else
-        fprintf("Struct did not have an 'x' or 'fx' field");
+        fprintf("Struct did not have an 'x' or 'fx' field\n");
     end
     if strcmp(type,'intensity') && strcmp(field_type,'intensity')
         plot_param = abs(image_struct.(field_type));
