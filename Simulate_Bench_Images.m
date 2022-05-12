@@ -10,7 +10,7 @@ addpath('./Data_Scripts/Data_Functions/');
 %load image
 im_base_folder = './Images/Bench_Images/Focused_Images/';
 im = open_im(strcat(im_base_folder, '500um-focused.png'));
-crop_param = [1 1080 200 1280];
+crop_param = [1 1080 160 1240];
 crop_im = crop(im, crop_param);
 crop_im_hol = image_data_struct(crop_im, 0);
 
@@ -83,12 +83,19 @@ plot_im(back_prop, b_prop_label, 'intensity')
 %now, we want to convolve hol with the image, to get our simulated image
 %hologram.
 conv = convolve(crop_im_hol, PSH);
+%Fresnel propagate the resulting hologram again to see the focused image
+conv_bp_intensity = fresnel_prop(conv.intensity, z1/2, PARAMS);
+conv_bp = struct('intensity', conv_bp_intensity, ...
+                   'x', crop_im_hol.x, 'y', crop_im_hol.y);
 %plot the resulting focused image and the expected hologram
 figure('Name', 'Focused Image vs Hologram');
-subplot(1, 2, 1);
+subplot(1, 3, 1);
 plot_im(crop_im_hol, 'Focused 500um Pinhole');
-subplot(1, 2, 2);
+subplot(1, 3, 2);
 plot_im(conv, 'Focused Image * PSH');
+subplot(1, 3, 3);
+conv_bp_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z1/2*1e3);
+plot_im(conv_bp, conv_bp_label, 'intensity');
 %Sanity checks that our Fresnel propagator works correctly are in
 %./Test_Scripts/
 
