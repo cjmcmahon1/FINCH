@@ -9,7 +9,7 @@ addpath('./Data_Scripts/Data_Functions/');
 
 %load image
 im_base_folder = './Images/Bench_Images/Focused_Images/';
-im = open_im(strcat(im_base_folder, '500um-focused.png'));
+im = open_im(strcat(im_base_folder, 'led-500um-focused.png'));
 crop_param = [1 1080 160 1240];
 crop_im = crop(im, crop_param);
 crop_im_hol = image_data_struct(crop_im, 0);
