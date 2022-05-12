@@ -17,7 +17,7 @@ crop_im_hol = image_data_struct(crop_im, 0);
 %other important bench measurements
 dz = 1.71; %mm
 mag = 5; %magnification of 4f setup
-NA = 25./200 * 1e-1; %numerical aperture (scaled down by 10 - sampling)
+NA = 25./200 * 5e-1; %numerical aperture (scaled down by 10 - sampling)
 
 %our 2 source points have their in focus object plane dz=1.71mm apart. In
 %the imaging plane, this corresponds to dz*mag^2, due to the axial
@@ -41,7 +41,9 @@ shifted2 = shifted_hologram(p1, p2, 2 * pi / 3);
 shifted3 = shifted_hologram(p1, p2, 4 * pi / 3);
 %generate the complex-valued hologram
 PSH = complex_hologram(p1, p2, 3);
-
+%normalize PSH to 1
+PSH_norm = sum(abs(PSH.intensity), 'all');
+PSH.intensity = PSH.intensity ./ PSH_norm;
 %Fresnel propagate the complex hologram backwards. We propagate backwards
 %by z1/2 and forwards by z2/2 because of the phase doubling. We expect the
 %image to be at z1/2, and the mirror image would be at z2/2 if it wasn't
@@ -87,6 +89,7 @@ conv = convolve(crop_im_hol, PSH);
 conv_bp_intensity = fresnel_prop(conv.intensity, z1/2, PARAMS);
 conv_bp = struct('intensity', conv_bp_intensity, ...
                    'x', crop_im_hol.x, 'y', crop_im_hol.y);
+
 %plot the resulting focused image and the expected hologram
 figure('Name', 'Focused Image vs Hologram');
 subplot(1, 3, 1);
@@ -96,8 +99,14 @@ plot_im(conv, 'Focused Image * PSH');
 subplot(1, 3, 3);
 conv_bp_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z1/2*1e3);
 plot_im(conv_bp, conv_bp_label, 'intensity');
-%Sanity checks that our Fresnel propagator works correctly are in
-%./Test_Scripts/
+
+%add shot noise (poissnrnd) to the image and see how that noise
+%propagates. Pseudocode:
+%im += poisson noise
+%noisy_conv = im * PSH
+%difference = noisy_conv - conv
+% noisy_conv_bp = fresnel_prop(noisy_conv)
+% propped_difference = noisy_conv_bp - conv_bp
 
 %Function Definitions are in ./MATLAB_functions/
 
