@@ -8,13 +8,16 @@ addpath('./MATLAB_functions/'); %include helper functions
 addpath('./Data_Scripts/Data_Functions/');
 
 %load image
-im_base_folder = './Images/Bench_Images/5-3-22/';
-im = open_im(strcat(im_base_folder, 'led-0deg.png'));
+im_base_folder = './Images/Bench_Images/Focused_Images/';
+im = open_im(strcat(im_base_folder, '500um-focused.png'));
+crop_param = [1 1080 200 1280];
+crop_im = crop(im, crop_param);
+crop_im_hol = image_data_struct(crop_im, 0);
 
 %other important bench measurements
 dz = 1.71; %mm
 mag = 5; %magnification of 4f setup
-NA = 25./200; %numerical aperture
+NA = 25./200 * 1e-1; %numerical aperture (scaled down by 10 - sampling)
 
 %our 2 source points have their in focus object plane dz=1.71mm apart. In
 %the imaging plane, this corresponds to dz*mag^2, due to the axial
@@ -23,7 +26,7 @@ z1 = -dz/2 * mag^2; %mm
 z2 = dz/2 * mag^2; %mm
 
 %generate relevant bench parameters given image size, NA, etc.
-PARAMS = bench_params(size(im, 1), size(im, 2), NA);
+PARAMS = bench_params(size(crop_im, 2), size(crop_im, 1), NA);
 
 %Simulate 2 defocused points which are frequency limited by the NA of the
 %system. (jinc functions in real space) using propagate(z, parameters)
@@ -37,12 +40,16 @@ shifted1 = shifted_hologram(p1, p2, 0 * pi / 3);
 shifted2 = shifted_hologram(p1, p2, 2 * pi / 3);
 shifted3 = shifted_hologram(p1, p2, 4 * pi / 3);
 %generate the complex-valued hologram
-hol = complex_hologram(p1, p2, 3);
-%fresnel propagate the complex hologram backwards
-back_plane = fresnel_prop(hol.intensity, z_back, PARAMS);
-forward_plane = fresnel_prop(hol.intensity, z_forward, PARAMS);
-back_prop = struct('intensity', back_plane, 'x', hol.x, 'y', hol.y);
-forward_prop = struct('intensity', forward_plane, 'x', hol.x, 'y', hol.y);
+PSH = complex_hologram(p1, p2, 3);
+
+%Fresnel propagate the complex hologram backwards. We propagate backwards
+%by z1/2 and forwards by z2/2 because of the phase doubling. We expect the
+%image to be at z1/2, and the mirror image would be at z2/2 if it wasn't
+%removed.
+back_plane = fresnel_prop(PSH.intensity, z1/2, PARAMS);
+forward_plane = fresnel_prop(PSH.intensity, z2/2, PARAMS);
+back_prop = struct('intensity', back_plane, 'x', PSH.x, 'y', PSH.y);
+forward_prop = struct('intensity', forward_plane, 'x', PSH.x, 'y', PSH.y);
 
 %Plot P1, P2, interference, as well as the resulting complex hologram to
 %check that everything is working.
@@ -58,26 +65,37 @@ plot_im(p2, p2_label)
 subplot(3, 3, 3)
 plot_im(interference, "P1 + P2 Intensity")
 subplot(3, 3, 4)
-plot_im(hol, "Re(Complex Hologram)", 'real')
+plot_im(PSH, "Re(Complex Hologram)", 'real')
 subplot(3, 3, 5)
-plot_im(hol, "Im(Complex Hologram)", 'imag')
+plot_im(PSH, "Im(Complex Hologram)", 'imag')
 subplot(3, 3, 6)
-plot_im(hol, "Abs(Complex Hologram)", 'intensity')
+plot_im(PSH, "Abs(Complex Hologram)", 'intensity')
 subplot(3, 3, 7)
-b_prop_label_re = sprintf('Re(Fresnel Propagated z=%3d um)', z_back*1e3);
+b_prop_label_re = sprintf('Re(Fresnel Propagated z=%3d um)', z1/2*1e3);
 plot_im(back_prop, b_prop_label_re, 'real')
 subplot(3, 3, 8)
-b_prop_label_im = sprintf('Im(Fresnel Propagated z=%3d um)', z_back*1e3);
+b_prop_label_im = sprintf('Im(Fresnel Propagated z=%3d um)', z1/2*1e3);
 plot_im(back_prop, b_prop_label_im, 'imag')
 subplot(3, 3, 9)
-b_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z_back*1e3);
+b_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z1/2*1e3);
 plot_im(back_prop, b_prop_label, 'intensity')
 
 %now, we want to convolve hol with the image, to get our simulated image
 %hologram.
-
-
+conv = convolve(crop_im_hol, PSH);
+%plot the resulting focused image and the expected hologram
+figure('Name', 'Focused Image vs Hologram');
+subplot(1, 2, 1);
+plot_im(crop_im_hol, 'Focused 500um Pinhole');
+subplot(1, 2, 2);
+plot_im(conv, 'Focused Image * PSH');
 %Sanity checks that our Fresnel propagator works correctly are in
 %./Test_Scripts/
 
 %Function Definitions are in ./MATLAB_functions/
+
+function cropped = crop(im, crop_array)
+    %return a cropped image based on input array of 4 indices
+    cropped = im(crop_array(1):crop_array(2), ...
+                 crop_array(3):crop_array(4));
+end
