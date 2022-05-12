@@ -47,8 +47,7 @@ end
 flag_gen_3dhol = true;
 if flag_gen_3dhol
     figure('Name', 'Generating Movie Scans')
-    z_vals = linspace(-30, 30, 100); %focus seems to be ~-8mm
-    %noLP 3D hologram focus ~-8.56mm (frame 145)
+    z_vals = linspace(-30, 30, 100); 
     data_hol_3d = hologram3D(c_hol, z_vals, PARAMS);
     %convert to movie frames
     data_frames = hologram3D_to_frames(data_hol_3d, 'LED Through Pinhole');

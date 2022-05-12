@@ -1,9 +1,14 @@
-function PARAMS = bench_params(num_x_pixels, num_y_pixels)
+function PARAMS = bench_params(num_x_pixels, num_y_pixels, NA)
+    arguments
+        num_x_pixels
+        num_y_pixels
+        NA = 0.1
+    end
     %get the bench parameters for the camera currently in use. Specify
     %number of pixels in each dimension and it will rescale it to the
     %appropriate units.
     %Measurements from the camera (units mm)
-    dx = 3.45e-3;
+    dx = 3.45e-3; %mm
     dy = dx;
 %     num_x_pixels = 1080;
 %     num_y_pixels = 1440;
@@ -18,7 +23,7 @@ function PARAMS = bench_params(num_x_pixels, num_y_pixels)
     PARAMS.lambda = 490e-6; %wavelength
     PARAMS.Mx = num_x_pixels;        %x samples
     PARAMS.My = num_y_pixels;        %y samples
-    PARAMS.NA = 25./200;%0.1;        %numerical aperture
+    PARAMS.NA = NA;        %numerical aperture
     PARAMS.x = X;
     PARAMS.y = Y;
 end
