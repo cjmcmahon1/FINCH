@@ -58,32 +58,36 @@ forward_prop = struct('intensity', forward_plane, 'x', PSH.x, 'y', PSH.y);
 
 %Plot P1, P2, interference, as well as the resulting complex hologram to
 %check that everything is working.
-hfig = figure('Name', 'Interference and Complex Hologram');
-pos = get(hfig,'position');
-set(hfig,'position',pos.*[0.25 0.25 2.5 1.9]); %make plot window wider
-subplot(3, 3, 1)
-p1_label = sprintf("P1 Intensity Plot (z1=%3d um)", z1*1e3);
-plot_im(p1, p1_label)
-subplot(3, 3, 2)
-p2_label = sprintf("P2 Intensity Plot (z2=%3d um)", z2*1e3);
-plot_im(p2, p2_label)
-subplot(3, 3, 3)
-plot_im(interference, "P1 + P2 Intensity")
-subplot(3, 3, 4)
-plot_im(PSH, "Re(Complex Hologram)", 'real')
-subplot(3, 3, 5)
-plot_im(PSH, "Im(Complex Hologram)", 'imag')
-subplot(3, 3, 6)
-plot_im(PSH, "Abs(Complex Hologram)", 'intensity')
-subplot(3, 3, 7)
-b_prop_label_re = sprintf('Re(Fresnel Propagated z=%3d um)', z1/2*1e3);
-plot_im(back_prop, b_prop_label_re, 'real')
-subplot(3, 3, 8)
-b_prop_label_im = sprintf('Im(Fresnel Propagated z=%3d um)', z1/2*1e3);
-plot_im(back_prop, b_prop_label_im, 'imag')
-subplot(3, 3, 9)
-b_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z1/2*1e3);
-plot_im(back_prop, b_prop_label, 'intensity')
+flag_PSH_info = false;
+if flag_PSH_info
+    % generate lots of PSH plots to check that the sampling is sufficient
+    hfig = figure('Name', 'Interference and Complex Hologram');
+    pos = get(hfig,'position');
+    set(hfig,'position',pos.*[0.25 0.25 2.5 1.9]); %make plot window wider
+    subplot(3, 3, 1)
+    p1_label = sprintf('P1 Intensity Plot (z1=%3d um)', z1*1e3);
+    plot_im(p1, p1_label)
+    subplot(3, 3, 2)
+    p2_label = sprintf('P2 Intensity Plot (z2=%3d um)', z2*1e3);
+    plot_im(p2, p2_label)
+    subplot(3, 3, 3)
+    plot_im(interference, 'P1 + P2 Intensity')
+    subplot(3, 3, 4)
+    plot_im(PSH, 'Re(Complex Hologram)', 'real')
+    subplot(3, 3, 5)
+    plot_im(PSH, 'Im(Complex Hologram)', 'imag')
+    subplot(3, 3, 6)
+    plot_im(PSH, 'Abs(Complex Hologram)', 'intensity')
+    subplot(3, 3, 7)
+    b_prop_label_re = sprintf('Re(Fresnel Propagated z=%3d um)', z1/2*1e3);
+    plot_im(back_prop, b_prop_label_re, 'real')
+    subplot(3, 3, 8)
+    b_prop_label_im = sprintf('Im(Fresnel Propagated z=%3d um)', z1/2*1e3);
+    plot_im(back_prop, b_prop_label_im, 'imag')
+    subplot(3, 3, 9)
+    b_prop_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z1/2*1e3);
+    plot_im(back_prop, b_prop_label, 'intensity')
+end
 
 %now, we want to convolve hol with the image, to get our simulated image
 %hologram.
@@ -116,7 +120,7 @@ noise = 1e-1;
 PSH_noisy = complex_hologram(p1, p2, 3, noise);
 %normalize PSH to 1
 PSH_noisy_norm = sum(abs(PSH_noisy.intensity), 'all');
-PSH_noisy.intensity = PSH_noisy.intensity ./ PSH_noisy_norm;
+PSH_noisy.intensity = PSH_noisy.intensity ./ PSH_norm;
 %convolve the in-focus image with the noisy PSH
 conv_noisy = convolve(crop_im_hol, PSH_noisy);
 %compare the noisy hologram with the noisless hologram
@@ -132,6 +136,13 @@ bp_difference = abs(conv_bp_noisy_intensity - conv_bp_intensity);
 bp_diff_struct = struct('intensity', bp_difference, ...
                         'x', conv_noisy.x, 'y', conv_noisy.y);
 
+%Compare the noiseless and noisy PSH
+figure('Name', 'PSH Comparison')
+subplot(1, 2, 1);
+plot_im(PSH, 'Abs(PSH)', 'intensity');
+subplot(1, 2, 2);
+plot_im(PSH_noisy, 'Abs(Noisy PSH)', 'intensity');
+
 %plot the noisy hologram and the difference.
 figure('Name', 'Noise Comparison');
 subplot(2, 3, 1);
@@ -141,10 +152,10 @@ plot_im(conv_noisy, sprintf('\\lambda = %.2e', noise));
 subplot(2, 3, 3);
 plot_im(hol_diff_struct, 'Hologram Difference');
 subplot(2, 3, 4);
-conv_bp_label = sprintf('Propagated z=%3d um', z1/2*1e3);
+conv_bp_label = sprintf('Propagated z=%.2e um', z1/2*1e3);
 plot_im(conv_bp, conv_bp_label, 'intensity');
 subplot(2, 3, 5);
-conv_bp_noisy_label = sprintf('Noisy Propagated z=%3d um', z1/2*1e3);
+conv_bp_noisy_label = sprintf('Noisy Propagated z=%.2e um', z1/2*1e3);
 plot_im(conv_bp_noisy, conv_bp_noisy_label, 'intensity');
 subplot(2, 3, 6);
 plot_im(bp_diff_struct, 'Propagated Difference');
