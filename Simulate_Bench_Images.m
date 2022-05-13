@@ -8,14 +8,14 @@ addpath('./MATLAB_functions/'); %include helper functions
 addpath('./Data_Scripts/Data_Functions/');
 
 %load image
-% im_base_folder = './Images/Bench_Images/Focused_Images/';
-% im = open_im(strcat(im_base_folder, 'led-500um-focused.png'));
-% crop_param = [1 1080 160 1240];
-% crop_im = crop(im, crop_param);
-% crop_im_hol = image_data_struct(crop_im, 0);
-%load a spoke pattern as an ideal image
-crop_im = load('./Images/Bench_Images/Focused_Images/I1.mat').I1;
+im_base_folder = './Images/Bench_Images/Focused_Images/';
+im = open_im(strcat(im_base_folder, 'led-500um-focused.png'));
+crop_param = [1 1080 160 1240];
+crop_im = crop(im, crop_param);
 crop_im_hol = image_data_struct(crop_im, 0);
+%load a spoke pattern as an ideal image
+% crop_im = load('./Images/Bench_Images/Focused_Images/I1.mat').I1;
+% crop_im_hol = image_data_struct(crop_im, 0);
 %other important bench measurements
 dz = 1.71e0; %mm
 mag = 5; %magnification of 4f setup
@@ -121,8 +121,16 @@ PSH_noisy = complex_hologram(p1, p2, 3, noise);
 %normalize PSH to 1
 PSH_noisy_norm = sum(abs(PSH_noisy.intensity), 'all');
 PSH_noisy.intensity = PSH_noisy.intensity ./ PSH_norm;
+%create phase shifted holograms for plotting
+im1_noisy = convolve(crop_im_hol, PSH_noisy.images(1));
+im1_noisy.angle = PSH_noisy.images(1).angle;
+im2_noisy = convolve(crop_im_hol, PSH_noisy.images(2));
+im2_noisy.angle = PSH_noisy.images(2).angle;
+im3_noisy = convolve(crop_im_hol, PSH_noisy.images(3));
+im3_noisy.angle = PSH_noisy.images(3).angle;
 %convolve the in-focus image with the noisy PSH
-conv_noisy = convolve(crop_im_hol, PSH_noisy);
+%conv_noisy = convolve(crop_im_hol, PSH_noisy);
+conv_noisy = hol_from_data([im1_noisy, im2_noisy, im3_noisy]);
 %compare the noisy hologram with the noisless hologram
 hol_difference = abs(conv_noisy.intensity - conv.intensity);
 hol_diff_struct = struct('intensity', hol_difference, ...
@@ -137,12 +145,19 @@ bp_diff_struct = struct('intensity', bp_difference, ...
                         'x', conv_noisy.x, 'y', conv_noisy.y);
 
 %Compare the noiseless and noisy PSH
-figure('Name', 'PSH Comparison')
-subplot(1, 2, 1);
+figure('Name', 'PSH Comparison');
+subplot(2, 3, 1);
+plot_im(crop_im_hol, 'Focused Image');
+subplot(2, 3, 2);
 plot_im(PSH, 'Abs(PSH)', 'intensity');
-subplot(1, 2, 2);
+subplot(2, 3, 3);
 plot_im(PSH_noisy, 'Abs(Noisy PSH)', 'intensity');
-
+subplot(2, 3, 4);
+plot_im(im1_noisy, 'Noisy (\\theta=0))');
+subplot(2, 3, 5);
+plot_im(im2_noisy, 'Noisy (\\theta=2\pi/3)');
+subplot(2, 3, 6);
+plot_im(im3_noisy, 'Noisy (\\theta=4\pi/3)');
 %plot the noisy hologram and the difference.
 figure('Name', 'Noise Comparison');
 subplot(2, 3, 1);
