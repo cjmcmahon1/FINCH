@@ -37,8 +37,8 @@ function plane_struct = propagate_init(zf, bench_params)
                            bench_params.Ly, bench_params.My, ...
                            bench_params.lambda);
     %To propagate, we just multiply
-    proppedFt = fftshift(fq_aperture .* H);
-    plane = ifftshift(ifft2(proppedFt));
+    proppedFt = fq_aperture .* H;
+    plane = fftshift(ifft2(ifftshift(proppedFt)));
     %return struct so we can plot with correct x & y axis
     plane_struct = struct('field', plane, 'x', x, 'y', y);
 end
