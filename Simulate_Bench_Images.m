@@ -96,41 +96,50 @@ conv_bp = struct('intensity', conv_bp_intensity, ...
 %plot the resulting focused image and the expected hologram
 figure('Name', 'Focused Image vs Hologram');
 subplot(1, 3, 1);
-plot_im(crop_im_hol, 'Focused 500um Pinhole');
+plot_im(crop_im_hol, 'Focused Image');
 subplot(1, 3, 2);
 plot_im(conv, 'Focused Image * PSH');
 subplot(1, 3, 3);
-conv_bp_label = sprintf('Abs(Fresnel Propagated z=%3d um)', z1/2*1e3);
+conv_bp_label = sprintf('Propagated z=%.2e um', z1/2*1e3);
 plot_im(conv_bp, conv_bp_label, 'intensity');
 
-%add shot noise (poissnrnd) to the image and see how that noise
-%propagates. Pseudocode:
-%im += poisson noise
-%noisy_conv = im * PSH
-%difference = noisy_conv - conv
-% noisy_conv_bp = fresnel_prop(noisy_conv)
-% propped_difference = noisy_conv_bp - conv_bp
+%add shot noise (poissnrnd) to the image
 noise = 1e-1;
-im_noisy = crop_im + poissrnd(noise, size(crop_im, 1), size(crop_im, 2));
-im_hol_noisy = image_data_struct(im_noisy, 0);
-conv_noisy = convolve(im_hol_noisy, PSH);
+% im_noisy = crop_im + poissrnd(noise, size(crop_im, 1), size(crop_im, 2));
+% im_hol_noisy = image_data_struct(im_noisy, 0);
+% conv_noisy = convolve(im_hol_noisy, PSH);
+% hol_difference = abs(conv_noisy.intensity - conv.intensity);
+% hol_diff_struct = struct('intensity', hol_difference, ...
+%                          'x', conv_noisy.x, 'y', conv_noisy.y);
+
+%create noisy PSH to model the noise we expect from each hologram
+PSH_noisy = complex_hologram(p1, p2, 3, noise);
+%normalize PSH to 1
+PSH_noisy_norm = sum(abs(PSH_noisy.intensity), 'all');
+PSH_noisy.intensity = PSH_noisy.intensity ./ PSH_noisy_norm;
+%convolve the in-focus image with the noisy PSH
+conv_noisy = convolve(crop_im_hol, PSH_noisy);
+%compare the noisy hologram with the noisless hologram
 hol_difference = abs(conv_noisy.intensity - conv.intensity);
 hol_diff_struct = struct('intensity', hol_difference, ...
                          'x', conv_noisy.x, 'y', conv_noisy.y);
+%propagate the noisy hologram
 conv_bp_noisy_intensity = fresnel_prop(conv_noisy.intensity, z1/2, PARAMS);
 conv_bp_noisy = struct('intensity', conv_bp_noisy_intensity, ...
-                   'x', im_hol_noisy.x, 'y', im_hol_noisy.y);
+                   'x', crop_im_hol.x, 'y', crop_im_hol.y);
+%compare the fresnel propagated noisy hologram with the noisless equivalent
 bp_difference = abs(conv_bp_noisy_intensity - conv_bp_intensity);
 bp_diff_struct = struct('intensity', bp_difference, ...
                         'x', conv_noisy.x, 'y', conv_noisy.y);
+
 %plot the noisy hologram and the difference.
 figure('Name', 'Noise Comparison');
 subplot(2, 3, 1);
 plot_im(conv, 'Noiseless Image');
 subplot(2, 3, 2);
-plot_im(conv_noisy, sprintf('Image With \\lambda = %2d', noise));
+plot_im(conv_noisy, sprintf('\\lambda = %.2e', noise));
 subplot(2, 3, 3);
-plot_im(hol_diff_struct, 'Noiseless/Noisy Hologram Difference');
+plot_im(hol_diff_struct, 'Hologram Difference');
 subplot(2, 3, 4);
 conv_bp_label = sprintf('Propagated z=%3d um', z1/2*1e3);
 plot_im(conv_bp, conv_bp_label, 'intensity');
@@ -138,7 +147,7 @@ subplot(2, 3, 5);
 conv_bp_noisy_label = sprintf('Noisy Propagated z=%3d um', z1/2*1e3);
 plot_im(conv_bp_noisy, conv_bp_noisy_label, 'intensity');
 subplot(2, 3, 6);
-plot_im(bp_diff_struct, 'Noiseless/Noisy Propagated Difference');
+plot_im(bp_diff_struct, 'Propagated Difference');
 
 %Function Definitions are in ./MATLAB_functions/
 
