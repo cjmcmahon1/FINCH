@@ -9,9 +9,9 @@ base_folder = '../Images/Bench_Images/5-17-22/';
 %tuned crop parameters to center the images
 crop1 = [1 1080 1 1440];   %5mm crop params
 %open images
-im1 = open_im(strcat(base_folder, 'led-0deg.png'));
-im2 = open_im(strcat(base_folder, 'led-60deg.png'));
-im3 = open_im(strcat(base_folder, 'led-120deg.png'));
+im1 = open_im(strcat(base_folder, 'led3-0deg.png'));
+im2 = open_im(strcat(base_folder, 'led3-60deg.png'));
+im3 = open_im(strcat(base_folder, 'led3-120deg.png'));
 % convert images into data structures
 figure(1);
 imagesc(crop(im1, crop1));
@@ -27,7 +27,7 @@ PARAMS  = bench_params(delta_x, delta_y);
 %make complex holograms
 c_hol = hol_from_data([h1 h2 h3]);
 %flags to specify what plots to make
-movie_label = 'led-movie-5-17';
+movie_label = 'led3-movie-5-17';
 flag_plot_hologram = true;
 flag_gen_3dhol     = true;
 flag_show_focus    = true;
@@ -55,7 +55,7 @@ if flag_gen_3dhol
     f_sz = 200; %focus size (number of pixels)
     crp = [y_midpt-f_sz y_midpt+f_sz x_midpt-f_sz x_midpt+f_sz];
     figure('Name', 'Generating Movie Scans')
-    z_vals = linspace(-2, 2, 400); %choose z-range to propagate
+    z_vals = linspace(-15, 15, 250); %choose z-range to propagate
     data_hol_3d = hologram3D(c_hol, z_vals, PARAMS);
     data_hol_3d = struct('intensity', ...
                   data_hol_3d.intensity(crp(1):crp(2),crp(3):crp(4),:), ...
