@@ -17,7 +17,7 @@ crop_im_hol = image_data_struct(crop_im, 0);
 % crop_im = load('./Images/Bench_Images/Focused_Images/I1.mat').I1;
 % crop_im_hol = image_data_struct(crop_im, 0);
 %other important bench measurements
-dz = 1.71e0; %mm
+dz = 1.71e-2; %mm
 mag = 5; %magnification of 4f setup
 NA = 25./200 * 1e-1; %numerical aperture (scaled down by 10 - sampling)
 
@@ -58,7 +58,7 @@ forward_prop = struct('intensity', forward_plane, 'x', PSH.x, 'y', PSH.y);
 
 %Plot P1, P2, interference, as well as the resulting complex hologram to
 %check that everything is working.
-flag_PSH_info = false;
+flag_PSH_info = true;
 if flag_PSH_info
     % generate lots of PSH plots to check that the sampling is sufficient
     hfig = figure('Name', 'Interference and Complex Hologram');
