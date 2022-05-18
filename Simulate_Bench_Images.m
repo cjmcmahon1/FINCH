@@ -8,18 +8,18 @@ addpath('./MATLAB_functions/'); %include helper functions
 addpath('./Data_Scripts/Data_Functions/');
 
 %load image
-im_base_folder = './Images/Bench_Images/Focused_Images/';
-im = open_im(strcat(im_base_folder, 'led-500um-focused.png'));
-crop_param = [1 1080 160 1240];
-crop_im = crop(im, crop_param);
-crop_im_hol = image_data_struct(crop_im, 0);
-%load a spoke pattern as an ideal image
-% crop_im = load('./Images/Bench_Images/Focused_Images/I1.mat').I1;
+% im_base_folder = './Images/Bench_Images/Focused_Images/';
+% im = open_im(strcat(im_base_folder, 'led-500um-focused.png'));
+% crop_param = [1 1080 160 1240];
+% crop_im = crop(im, crop_param);
 % crop_im_hol = image_data_struct(crop_im, 0);
+%load a spoke pattern as an ideal image
+crop_im = load('./Images/Bench_Images/Focused_Images/I1.mat').I1;
+crop_im_hol = image_data_struct(crop_im, 0);
 %other important bench measurements
 dz = 1.71e-2; %mm
 mag = 5; %magnification of 4f setup
-NA = 25./200 * 1e-1; %numerical aperture (scaled down by 10 - sampling)
+NA = 25./200 * 5e-2; %numerical aperture (scaled down by 10 - sampling)
 
 %our 2 source points have their in focus object plane dz=1.71mm apart. In
 %the imaging plane, this corresponds to dz*mag^2, due to the axial

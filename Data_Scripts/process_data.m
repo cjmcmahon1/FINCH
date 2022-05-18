@@ -5,21 +5,16 @@
 addpath('../MATLAB_functions/'); %include helper functions
 addpath('./Data_Functions/');
 
-%Measurements from the camera (units mm)
-
-base_folder = '../Images/Bench_Images/5-11-22/';
+base_folder = '../Images/Bench_Images/5-17-22/';
 %tuned crop parameters to center the images
 crop1 = [1 1080 1 1440];   %5mm crop params
-% crop1 = [405 1005 550 1150];   %20mm crop params
-% crop1 = [450 1050 530 1130];   %75mm crop params
 %open images
-im1 = open_im(strcat(base_folder, 'led-500um-0deg.png'));
-im2 = open_im(strcat(base_folder, 'led-500um-60deg.png'));
-im3 = open_im(strcat(base_folder, 'led-500um-120deg.png'));
+im1 = open_im(strcat(base_folder, 'led3-0deg.png'));
+im2 = open_im(strcat(base_folder, 'led3-60deg.png'));
+im3 = open_im(strcat(base_folder, 'led3-120deg.png'));
 % convert images into data structures
 figure(1);
 imagesc(crop(im1, crop1));
-
 h1 = image_data_struct(crop(im1, crop1), 0);
 h2 = image_data_struct(crop(im2, crop1), 2*pi/3);
 h3 = image_data_struct(crop(im3, crop1), 4*pi/3);
@@ -32,12 +27,12 @@ PARAMS  = bench_params(delta_x, delta_y);
 %make complex holograms
 c_hol = hol_from_data([h1 h2 h3]);
 %flags to specify what plots to make
-movie_label = '5um-imagIFTonly-zoom-4-27';
+movie_label = 'led3-movie-5-17';
 flag_plot_hologram = true;
 flag_gen_3dhol     = true;
-flag_show_focus    = false;
+flag_show_focus    = true;
 flag_show_movie    = true;
-flag_save_movie    = false;
+flag_save_movie    = true;
 flag_show_PSF      = false;
 %make plots of the individual images + the complex hologram
 if flag_plot_hologram
@@ -57,20 +52,22 @@ if flag_plot_hologram
 end
 
 if flag_gen_3dhol
+    f_sz = 200; %focus size (number of pixels)
+    crp = [y_midpt-f_sz y_midpt+f_sz x_midpt-f_sz x_midpt+f_sz];
     figure('Name', 'Generating Movie Scans')
-    z_vals = linspace(-10, 10, 200); %choose z-range to propagate
+    z_vals = linspace(-15, 15, 250); %choose z-range to propagate
     data_hol_3d = hologram3D(c_hol, z_vals, PARAMS);
     data_hol_3d = struct('intensity', ...
-                  data_hol_3d.intensity, ...
-                  'x', data_hol_3d.x, ...
-                  'y', data_hol_3d.y, 'z', z_vals);
+                  data_hol_3d.intensity(crp(1):crp(2),crp(3):crp(4),:), ...
+                  'x', data_hol_3d.x(crp(1):crp(2)), ...
+                  'y', data_hol_3d.y(crp(3):crp(4)), 'z', z_vals);
     %convert to movie frames
     data_frames = hologram3D_to_frames(data_hol_3d, 'LED Through Pinhole');
     close
 end
 
 if flag_show_focus
-    focus = -39.19;
+    focus = -0.285 * 5;
     f_sz = 100; %focus size (number of pixels)
     focused = gen_hol_im(c_hol, focus, PARAMS);
 %     crop_params = [70 130 70 130];
