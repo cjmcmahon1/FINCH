@@ -111,7 +111,7 @@ conv_bp_label = sprintf('Propagated z=%.2e um', z1/2*1e3);
 plot_im(conv_bp, conv_bp_label, 'intensity');
 
 %add shot noise (poissnrnd) to the image
-noise = 1e-1;
+noise = 0.;
 % im_noisy = crop_im + poissrnd(noise, size(crop_im, 1), size(crop_im, 2));
 % im_hol_noisy = image_data_struct(im_noisy, 0);
 % conv_noisy = convolve(im_hol_noisy, PSH);
@@ -123,7 +123,7 @@ noise = 1e-1;
 PSH_noisy = complex_hologram(p1, p2, 3, noise);
 %normalize PSH to 1
 PSH_noisy_norm = sum(abs(PSH_noisy.intensity), 'all');
-PSH_noisy.intensity = PSH_noisy.intensity ./ PSH_norm;
+% PSH_noisy.intensity = PSH_noisy.intensity ./ PSH_norm;
 %create phase shifted holograms for plotting
 im1_noisy = convolve(crop_im_hol, PSH_noisy.images(1));
 im1_noisy.angle = PSH_noisy.images(1).angle;
