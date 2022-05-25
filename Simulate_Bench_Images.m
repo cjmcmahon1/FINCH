@@ -41,7 +41,7 @@ p2 = propagate_init(z2, PARAMS);
 %add the two fields together
 interference = struct('field', p1.field + p2.field, 'x', p1.x, 'y', p1.y);
 %create phase shifted holograms for plotting
-shifted1 = shifted_hologram(p1, p2, 0 * pi / 3);
+shifted1 = shifted_hologram(p1, p2, 0 * pi / 3); %%normalize these!
 shifted2 = shifted_hologram(p1, p2, 2 * pi / 3);
 shifted3 = shifted_hologram(p1, p2, 4 * pi / 3);
 %generate the complex-valued hologram
@@ -61,7 +61,7 @@ forward_prop = struct('intensity', forward_plane, 'x', PSH.x, 'y', PSH.y);
 
 %Plot P1, P2, interference, as well as the resulting complex hologram to
 %check that everything is working.
-flag_PSH_info = true;
+flag_PSH_info = false;
 if flag_PSH_info
     % generate lots of PSH plots to check that the sampling is sufficient
     hfig = figure('Name', 'Interference and Complex Hologram');

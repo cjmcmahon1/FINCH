@@ -26,7 +26,7 @@ function res_struct = convolve(im1, im2, normalize)
     %take ift for result
     res = fftshift(ifft2(ifftshift(Ft_prod)));
     if normalize
-        norm = sum(res.(field_type1), 'all');
+        norm = sum(res, 'all');
         res = res ./ norm;
     end
     res_struct = struct(field_type1, res, 'x', im1.x, 'y', im1.y);
