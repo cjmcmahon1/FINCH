@@ -48,7 +48,7 @@ shifted3 = shifted_hologram(p1, p2, 4 * pi / 3);
 PSH = complex_hologram(p1, p2, 3);
 %normalize PSH to 1
 PSH_norm = sum(abs(PSH.intensity), 'all');
-PSH.intensity = PSH.intensity ./ PSH_norm;
+% PSH.intensity = PSH.intensity ./ PSH_norm;
 
 %Fresnel propagate the complex hologram backwards. We propagate backwards
 %by z1/2 and forwards by z2/2 because of the phase doubling. We expect the
@@ -123,7 +123,7 @@ noise = 0.;
 PSH_noisy = complex_hologram(p1, p2, 3, noise);
 %normalize PSH to 1
 PSH_noisy_norm = sum(abs(PSH_noisy.intensity), 'all');
-% PSH_noisy.intensity = PSH_noisy.intensity ./ PSH_norm;
+PSH_noisy.intensity = PSH_noisy.intensity ./ PSH_noisy_norm;
 %create phase shifted holograms for plotting
 im1_noisy = convolve(crop_im_hol, PSH_noisy.images(1));
 im1_noisy.angle = PSH_noisy.images(1).angle;
