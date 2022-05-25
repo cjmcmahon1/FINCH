@@ -12,7 +12,7 @@ function result = shifted_hologram(plane1, plane2, theta, lambda)
     interference  = (plane1.field .* exp(1i * theta)) + plane2.field;
     intensity = abs(interference).^2;
     if lambda > 0 %add poisson noise if a noise level is specified
-        noise = poissrnd(lambda, size(intensity, 1), size(intensity, 2));
+        noise = poissrnd(intensity) .* lambda;
         intensity = intensity + noise;
     end
     result = struct('intensity', intensity, 'x', plane1.x, 'y', plane1.y);
