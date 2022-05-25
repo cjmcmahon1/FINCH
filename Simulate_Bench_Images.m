@@ -125,11 +125,11 @@ PSH_noisy = complex_hologram(p1, p2, 3, noise);
 PSH_noisy_norm = sum(abs(PSH_noisy.intensity), 'all');
 PSH_noisy.intensity = PSH_noisy.intensity ./ PSH_noisy_norm;
 %create phase shifted holograms for plotting
-im1_noisy = convolve(crop_im_hol, PSH_noisy.images(1));
+im1_noisy = convolve(crop_im_hol, PSH_noisy.images(1), true);
 im1_noisy.angle = PSH_noisy.images(1).angle;
-im2_noisy = convolve(crop_im_hol, PSH_noisy.images(2));
+im2_noisy = convolve(crop_im_hol, PSH_noisy.images(2), true);
 im2_noisy.angle = PSH_noisy.images(2).angle;
-im3_noisy = convolve(crop_im_hol, PSH_noisy.images(3));
+im3_noisy = convolve(crop_im_hol, PSH_noisy.images(3), true);
 im3_noisy.angle = PSH_noisy.images(3).angle;
 %convolve the in-focus image with the noisy PSH
 %conv_noisy = convolve(crop_im_hol, PSH_noisy);

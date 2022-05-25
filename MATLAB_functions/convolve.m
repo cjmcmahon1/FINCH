@@ -3,7 +3,7 @@ function res_struct = convolve(im1, im2, normalize)
     arguments
         im1
         im2
-        normalize = true
+        normalize = false
     end
     if isfield(im1, 'intensity')
         field_type1 = 'intensity';
