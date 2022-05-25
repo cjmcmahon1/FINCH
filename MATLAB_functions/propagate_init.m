@@ -39,6 +39,9 @@ function plane_struct = propagate_init(zf, bench_params)
     %To propagate, we just multiply
     proppedFt = fq_aperture .* H;
     plane = fftshift(ifft2(ifftshift(proppedFt)));
+    %normalize field such that the total number of photons is constant
+    norm = sum(abs(plane).^2, 'all');
+    plane = plane ./ norm;
     %return struct so we can plot with correct x & y axis
     plane_struct = struct('field', plane, 'x', x, 'y', y);
 end
