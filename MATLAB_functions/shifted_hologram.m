@@ -8,7 +8,7 @@ function result = shifted_hologram(plane1, plane2, theta, lambda, normalize)
         plane2
         theta %artificial phase shift of the interference
         lambda = 0;
-        normalize = true;
+        normalize = false;
     end
     interference  = (plane1.field .* exp(1i * theta)) + plane2.field;
     intensity = abs(interference).^2;
