@@ -18,8 +18,8 @@ function result = complex_hologram(plane1, plane2, num_angles, noise, ...
         prev_angle = mod(inc*(i-1), 2*pi);
         next_angle = mod(inc*(i+1), 2*pi);
         current_angle = mod(inc*(i), 2*pi);
-        shifted_h = shifted_hologram(plane1, plane2, inc*i, noise, ...
-                                     normalize_input);
+        shifted_h = shifted_hologram(plane1, plane2, current_angle, ...
+                                    noise, normalize_input);
         phase = exp(1i * prev_angle) - exp(1i * next_angle);
         h_sum = h_sum + shifted_h.intensity .* phase;
         hols(i).intensity = shifted_h.intensity;

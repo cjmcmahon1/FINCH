@@ -10,7 +10,8 @@ addpath('./Data_Scripts/Data_Functions/');
 %load image
 im_base_folder = './Images/Bench_Images/Focused_Images/';
 im = open_im(strcat(im_base_folder, 'led-500um-focused.png'));
-crop_param = [1 1080 160 1240];
+% crop_param = [1 1080 160 1240];
+crop_param = [500 501 600 601];
 crop_im = crop(im, crop_param);
 %normalize image such that the total number of photon counts is 1
 crop_im_norm = sum(crop_im, 'all');
@@ -41,9 +42,9 @@ p2 = propagate_init(z2, PARAMS);
 %add the two fields together
 interference = struct('field', p1.field + p2.field, 'x', p1.x, 'y', p1.y);
 %create phase shifted holograms for plotting
-shifted1 = shifted_hologram(p1, p2, 0 * pi / 3, true); %%normalize these!
-shifted2 = shifted_hologram(p1, p2, 2 * pi / 3, true);
-shifted3 = shifted_hologram(p1, p2, 4 * pi / 3, true);
+shifted1 = shifted_hologram(p1, p2, 0 * pi / 3, 0, true); 
+shifted2 = shifted_hologram(p1, p2, 2 * pi / 3, 0, true);
+shifted3 = shifted_hologram(p1, p2, 4 * pi / 3, 0, true);
 %generate the complex-valued hologram
 PSH = complex_hologram(p1, p2, 3, 0, true);
 %normalize PSH to 1
@@ -61,7 +62,7 @@ forward_prop = struct('intensity', forward_plane, 'x', PSH.x, 'y', PSH.y);
 
 %Plot P1, P2, interference, as well as the resulting complex hologram to
 %check that everything is working.
-flag_PSH_info = true;
+flag_PSH_info = false;
 if flag_PSH_info
     % generate lots of PSH plots to check that the sampling is sufficient
     hfig = figure('Name', 'Interference and Complex Hologram');
@@ -101,29 +102,22 @@ conv_bp = struct('intensity', conv_bp_intensity, ...
                    'x', crop_im_hol.x, 'y', crop_im_hol.y);
 
 %plot the resulting focused image and the expected hologram
-figure('Name', 'Focused Image vs Hologram');
-subplot(1, 3, 1);
-plot_im(crop_im_hol, 'Focused Image');
-subplot(1, 3, 2);
-plot_im(conv, 'Focused Image * PSH');
-subplot(1, 3, 3);
-conv_bp_label = sprintf('Propagated z=%.2e um', z1/2*1e3);
-plot_im(conv_bp, conv_bp_label, 'intensity');
+% figure('Name', 'Focused Image vs Hologram');
+% subplot(1, 3, 1);
+% plot_im(crop_im_hol, 'Focused Image');
+% subplot(1, 3, 2);
+% plot_im(conv, 'Focused Image * PSH');
+% subplot(1, 3, 3);
+% conv_bp_label = sprintf('Propagated z=%.2e um', z1/2*1e3);
+% plot_im(conv_bp, conv_bp_label, 'intensity');
 
 %add shot noise (poissnrnd) to the image
 noise = 0.;
-% im_noisy = crop_im + poissrnd(noise, size(crop_im, 1), size(crop_im, 2));
-% im_hol_noisy = image_data_struct(im_noisy, 0);
-% conv_noisy = convolve(im_hol_noisy, PSH);
-% hol_difference = abs(conv_noisy.intensity - conv.intensity);
-% hol_diff_struct = struct('intensity', hol_difference, ...
-%                          'x', conv_noisy.x, 'y', conv_noisy.y);
-
 %create noisy PSH to model the noise we expect from each hologram
-PSH_noisy = complex_hologram(p1, p2, 3, noise);
+PSH_noisy = complex_hologram(p1, p2, 3, noise, true);
 %normalize PSH to 1
 PSH_noisy_norm = sum(abs(PSH_noisy.intensity), 'all');
-PSH_noisy.intensity = PSH_noisy.intensity ./ PSH_noisy_norm;
+% PSH_noisy.intensity = PSH_noisy.intensity ./ PSH_noisy_norm;
 %create phase shifted holograms for plotting
 im1_noisy = convolve(crop_im_hol, PSH_noisy.images(1), true);
 im1_noisy.angle = PSH_noisy.images(1).angle;
@@ -134,6 +128,33 @@ im3_noisy.angle = PSH_noisy.images(3).angle;
 %convolve the in-focus image with the noisy PSH
 %conv_noisy = convolve(crop_im_hol, PSH_noisy);
 conv_noisy = hol_from_data([im1_noisy, im2_noisy, im3_noisy]);
+%debug fields where we take the original fields from the PSH and plug them
+%in to hol_from_data to confirm that the data hologram is generated in the
+%same way as the simulated PSH
+conv_debug = hol_from_data([PSH.images(1), PSH.images(2), PSH.images(3)]);
+figure('Name', 'Debug Plots');
+subplot(2, 3, 1);
+plot_im(conv, 'Abs(Image * PSH)');
+subplot(2, 3, 2);
+plot_im(conv_noisy, 'Abs(Noisy Image * PSH)');
+subplot(2, 3, 3);
+plot_im(conv_debug, 'Abs(hol_from_data(PSH_images))');
+subplot(2, 3, 4);
+imagesc(abs(shifted1.intensity - PSH.images(1).intensity));
+colormap('gray');
+colorbar();
+title('Difference in Shifted1 - PSH_images(1)');
+subplot(2, 3, 5);
+imagesc(abs(shifted2.intensity - PSH.images(2).intensity));
+colormap('gray');
+colorbar();
+title('Difference in Shifted2 - PSH_images(2)');
+subplot(2, 3, 6);
+imagesc(abs(shifted3.intensity - PSH.images(3).intensity));
+colormap('gray');
+colorbar();
+title('Difference in Shifted3 - PSH_images(3)');
+
 %compare the noisy hologram with the noisless hologram
 hol_difference = abs(conv_noisy.intensity - conv.intensity);
 hol_diff_struct = struct('intensity', hol_difference, ...
@@ -148,35 +169,36 @@ bp_diff_struct = struct('intensity', bp_difference, ...
                         'x', conv_noisy.x, 'y', conv_noisy.y);
 
 %Compare the noiseless and noisy PSH
-figure('Name', 'PSH Comparison');
-subplot(2, 3, 1);
-plot_im(crop_im_hol, 'Focused Image');
-subplot(2, 3, 2);
-plot_im(PSH, 'Abs(PSH)', 'intensity');
-subplot(2, 3, 3);
-plot_im(PSH_noisy, 'Abs(Noisy PSH)', 'intensity');
-subplot(2, 3, 4);
-plot_im(im1_noisy, 'Noisy (\\theta=0))');
-subplot(2, 3, 5);
-plot_im(im2_noisy, 'Noisy (\\theta=2\pi/3)');
-subplot(2, 3, 6);
-plot_im(im3_noisy, 'Noisy (\\theta=4\pi/3)');
-%plot the noisy hologram and the difference.
-figure('Name', 'Noise Comparison');
-subplot(2, 3, 1);
-plot_im(conv, 'Noiseless Image');
-subplot(2, 3, 2);
-plot_im(conv_noisy, sprintf('\\lambda = %.2e', noise));
-subplot(2, 3, 3);
-plot_im(hol_diff_struct, 'Hologram Difference');
-subplot(2, 3, 4);
-conv_bp_label = sprintf('Propagated z=%.2e um', z1/2*1e3);
-plot_im(conv_bp, conv_bp_label, 'intensity');
-subplot(2, 3, 5);
-conv_bp_noisy_label = sprintf('Noisy Propagated z=%.2e um', z1/2*1e3);
-plot_im(conv_bp_noisy, conv_bp_noisy_label, 'intensity');
-subplot(2, 3, 6);
-plot_im(bp_diff_struct, 'Propagated Difference');
+% figure('Name', 'PSH Comparison');
+% subplot(2, 3, 1);
+% plot_im(crop_im_hol, 'Focused Image');
+% subplot(2, 3, 2);
+% plot_im(PSH, 'Abs(PSH)', 'intensity');
+% subplot(2, 3, 3);
+% plot_im(PSH_noisy, 'Abs(Noisy PSH)', 'intensity');
+% subplot(2, 3, 4);
+% plot_im(im1_noisy, 'Noisy (\\theta=0))');
+% subplot(2, 3, 5);
+% plot_im(im2_noisy, 'Noisy (\\theta=2\pi/3)');
+% subplot(2, 3, 6);
+% plot_im(im3_noisy, 'Noisy (\\theta=4\pi/3)');
+% 
+% %plot the noisy hologram and the difference.
+% figure('Name', 'Noise Comparison');
+% subplot(2, 3, 1);
+% plot_im(conv, 'Noiseless Image');
+% subplot(2, 3, 2);
+% plot_im(conv_noisy, sprintf('\\lambda = %.2e', noise));
+% subplot(2, 3, 3);
+% plot_im(hol_diff_struct, 'Hologram Difference');
+% subplot(2, 3, 4);
+% conv_bp_label = sprintf('Propagated z=%.2e um', z1/2*1e3);
+% plot_im(conv_bp, conv_bp_label, 'intensity');
+% subplot(2, 3, 5);
+% conv_bp_noisy_label = sprintf('Noisy Propagated z=%.2e um', z1/2*1e3);
+% plot_im(conv_bp_noisy, conv_bp_noisy_label, 'intensity');
+% subplot(2, 3, 6);
+% plot_im(bp_diff_struct, 'Propagated Difference');
 
 %Function Definitions are in ./MATLAB_functions/
 
@@ -184,4 +206,16 @@ function cropped = crop(im, crop_array)
     %return a cropped image based on input array of 4 indices
     cropped = im(crop_array(1):crop_array(2), ...
                  crop_array(3):crop_array(4));
+end
+
+function res = isum(intensity_struct)
+    %debugging function to print the sum of all elements in an plane
+    %structure
+    res = sum(abs(intensity_struct.intensity), 'all');
+end
+
+function res = fsum(intensity_struct)
+    %debugging function to print the sum of all elements in an plane
+    %structure (squares the field)
+    res = sum(abs(intensity_struct.intensity).^2, 'all');
 end

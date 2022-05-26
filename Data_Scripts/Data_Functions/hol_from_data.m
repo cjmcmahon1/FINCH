@@ -12,9 +12,9 @@ function c_hologram = hol_from_data(image_struct_list)
     end
     h_sum = zeros(int_shape);
     for i = 1:num_h
-        prev_angle_idx = mod(i+1, num_h)+1;
+        prev_angle_idx = mod(i - 2 + num_h, num_h)+1;
         prev_angle = angles(prev_angle_idx);
-        next_angle_idx = mod(i-1, num_h)+1;
+        next_angle_idx = mod(i, num_h)+1;
         next_angle = angles(next_angle_idx);
         phase = exp(1i * prev_angle) - exp(1i * next_angle);
         h_sum = h_sum + squeeze(intensities(i,:,:)) .* phase;
