@@ -11,7 +11,7 @@ addpath('./Data_Scripts/Data_Functions/');
 im_base_folder = './Images/Bench_Images/Focused_Images/';
 im = open_im(strcat(im_base_folder, 'led-500um-focused.png'));
 crop_param = [1 1080 160 1240];
-% crop_param = [500 501 600 601];
+% crop_param = [500 505 600 605];
 crop_im = crop(im, crop_param);
 %normalize image such that the total number of photon counts is 1
 crop_im_norm = sum(crop_im, 'all');
@@ -23,7 +23,7 @@ crop_im_hol = image_data_struct(crop_im, 0);
 %other important bench measurements
 dz = 20.0; %mm
 % mag = 1.5; %magnification of 4f setup
-NA = 0.1/1; %numerical aperture (scaled down by 10 - sampling)
+NA = 0.1/4; %numerical aperture (scaled down by 10 - sampling)
 
 %our 2 source points have their in focus object plane dz=1.71mm apart. In
 %the imaging plane, this corresponds to dz*mag^2, due to the axial
@@ -62,7 +62,7 @@ forward_prop = struct('intensity', forward_plane, 'x', PSH.x, 'y', PSH.y);
 
 %Plot P1, P2, interference, as well as the resulting complex hologram to
 %check that everything is working.
-flag_PSH_info = true;
+flag_PSH_info = false;
 if flag_PSH_info
     % generate lots of PSH plots to check that the sampling is sufficient
     hfig = figure('Name', 'Interference and Complex Hologram');
@@ -120,7 +120,7 @@ im3_noiseless.angle = PSH.images(3).angle;
 % plot_im(conv_bp, conv_bp_label, 'intensity');
 
 %add shot noise (poissnrnd) to the image
-noise = 0.;
+noise = 1.e3;
 %create noisy PSH to model the noise we expect from each hologram
 PSH_noisy = complex_hologram(p1, p2, 3, noise, true);
 %normalize PSH to 1
@@ -193,7 +193,9 @@ bp_diff_struct = struct('intensity', bp_difference, ...
                         'x', conv_noisy.x, 'y', conv_noisy.y);
 
 %Compare the noiseless and noisy PSH
-figure('Name', 'PSH Comparison');
+hfig2 = figure('Name', 'PSH Comparison');
+pos = get(hfig2,'position');
+set(hfig2,'position',pos.*[0.25 0.25 2.5 1.9]); %make plot window wider
 subplot(1, 3, 1);
 plot_im(crop_im_hol, 'Focused Image');
 subplot(1, 3, 2);
@@ -202,7 +204,9 @@ subplot(1, 3, 3);
 plot_im(PSH_noisy, 'Abs(Noisy PSH)', 'intensity');
 
 %compare the noiseless vs noisy simulated images
-figure('Name', 'Simulated Image Comparison');
+hfig3 = figure('Name', 'Simulated Image Comparison');
+pos = get(hfig3,'position');
+set(hfig3,'position',pos.*[0.25 0.25 2.5 1.9]); %make plot window wider
 subplot(3, 3, 1);
 plot_im(im1_noiseless, 'Noiseless (theta=2\pi/3))');
 subplot(3, 3, 2);
@@ -223,7 +227,9 @@ subplot(3, 3, 9);
 plot_im(im3_diff_struct, 'Difference');
 
 %compare the noiseless and noisy hologram, and their propagated results
-figure('Name', 'Noise Comparison');
+hfig4 = figure('Name', 'Noise Comparison');
+pos = get(hfig4,'position');
+set(hfig4,'position',pos.*[0.25 0.25 2.5 1.9]); %make plot window wider
 subplot(2, 3, 1);
 plot_im(conv, 'Noiseless Hologram');
 subplot(2, 3, 2);
