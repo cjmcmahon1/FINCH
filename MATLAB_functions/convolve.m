@@ -1,8 +1,9 @@
-function res_struct = colvolve(im1, im2)
+function res_struct = convolve(im1, im2, normalize)
     %code to compute the colvoluion of 2 image structures
     arguments
-        im1 %array that we want to propagate
+        im1
         im2
+        normalize = false
     end
     if isfield(im1, 'intensity')
         field_type1 = 'intensity';
@@ -15,6 +16,7 @@ function res_struct = colvolve(im1, im2)
         field_type2 = 'field';
     end
     %check array dimensions
+    assert(strcmp(field_type2, field_type1))
     assert(all(size(im1.(field_type1))==size(im2.(field_type2))))
     %fft
     ft1 = fftshift(fft2(ifftshift(im1.(field_type1))));
@@ -23,5 +25,9 @@ function res_struct = colvolve(im1, im2)
     Ft_prod = ft1 .* ft2;
     %take ift for result
     res = fftshift(ifft2(ifftshift(Ft_prod)));
+    if normalize
+        norm = sum(res, 'all');
+        res = res ./ norm;
+    end
     res_struct = struct(field_type1, res, 'x', im1.x, 'y', im1.y);
 end
