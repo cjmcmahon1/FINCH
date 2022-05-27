@@ -5,13 +5,13 @@
 addpath('../MATLAB_functions/'); %include helper functions
 addpath('./Data_Functions/');
 
-base_folder = '../Images/Bench_Images/5-20-22/';
+base_folder = '../Images/Bench_Images/5-26-22/';
 %tuned crop parameters to center the images
 crop1 = [1 1080 1 1440];   %5mm crop params
 %open images
-im1 = open_im(strcat(base_folder, 'usaf4-0deg.png'));
-im2 = open_im(strcat(base_folder, 'usaf4-60deg.png'));
-im3 = open_im(strcat(base_folder, 'usaf4-120deg.png'));
+im1 = open_im(strcat(base_folder, 'usaf1-4x-0deg.png'));
+im2 = open_im(strcat(base_folder, 'usaf1-4x-60deg.png'));
+im3 = open_im(strcat(base_folder, 'usaf1-4x-120deg.png'));
 % convert images into data structures
 figure(1);
 imagesc(crop(im1, crop1));
@@ -27,7 +27,7 @@ PARAMS  = bench_params(delta_x, delta_y);
 %make complex holograms
 c_hol = hol_from_data([h1 h2 h3]);
 %flags to specify what plots to make
-movie_label = 'usaf4-movie-5-20';
+movie_label = 'usaf1-4x-movie-5-25';
 flag_plot_hologram = true;
 flag_gen_3dhol     = true;
 flag_show_focus    = true;
@@ -52,10 +52,10 @@ if flag_plot_hologram
 end
 
 if flag_gen_3dhol
-    f_sz = 500; %focus size (number of pixels)
+    f_sz = 530; %focus size (number of pixels)
     crp = [y_midpt-f_sz y_midpt+f_sz x_midpt-f_sz x_midpt+f_sz];
     figure('Name', 'Generating Movie Scans')
-    z_vals = linspace(-30, 30, 250); %choose z-range to propagate
+    z_vals = linspace(-15, 15, 350); %choose z-range to propagate
     data_hol_3d = hologram3D(c_hol, z_vals, PARAMS);
     data_hol_3d = struct('intensity', ...
                   data_hol_3d.intensity(crp(1):crp(2),crp(3):crp(4),:), ...
@@ -67,7 +67,7 @@ if flag_gen_3dhol
 end
 
 if flag_show_focus
-    focus = -4.2;
+    focus = 5.2;
     f_sz = 500; %focus size (number of pixels)
     focused = gen_hol_im(c_hol, focus, PARAMS);
 %     crop_params = [70 130 70 130];
