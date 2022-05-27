@@ -20,8 +20,8 @@ function plane_struct = FT(image_struct)
     fMax_y = 1/(2*dy);
     df_x = 1/lx;
     df_y = 1/ly;
-    fx = -fMax_x:df_x:fMax_x-df_x;
-    fy = -fMax_y:df_y:fMax_y-df_y;
+    fx = -fMax_x:df_x:fMax_x;
+    fy = -fMax_y:df_y:fMax_y;
     plane_struct = struct('intensity', ft, 'fx', fx, 'fy', fy);
     if isfield(image_struct, 'z')
        %compute z frequencies if it's a 3D hologram

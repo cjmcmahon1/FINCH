@@ -17,8 +17,9 @@ function result = shifted_hologram(plane1, plane2, theta, lambda, normalize)
         intensity = intensity ./ norm;
     end
     if lambda > 0 %add poisson noise if a noise level is specified
-        noise = poissrnd(intensity.*1e6) .* lambda ./ 1e6;
-        intensity = intensity + noise;
+        noise = poissrnd(intensity.*1e6 .* lambda) ./ (1e6 * lambda);
+        %intensity = intensity + noise;
+        intensity = noise;
     end
     result = struct('intensity', intensity, 'x', plane1.x, 'y', plane1.y);
 end

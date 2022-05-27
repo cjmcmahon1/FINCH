@@ -62,7 +62,7 @@ forward_prop = struct('intensity', forward_plane, 'x', PSH.x, 'y', PSH.y);
 
 %Plot P1, P2, interference, as well as the resulting complex hologram to
 %check that everything is working.
-flag_PSH_info = false;
+flag_PSH_info = true;
 if flag_PSH_info
     % generate lots of PSH plots to check that the sampling is sufficient
     hfig = figure('Name', 'Interference and Complex Hologram');
@@ -196,12 +196,16 @@ bp_diff_struct = struct('intensity', bp_difference, ...
 hfig2 = figure('Name', 'PSH Comparison');
 pos = get(hfig2,'position');
 set(hfig2,'position',pos.*[0.25 0.25 2.5 1.9]); %make plot window wider
+% subplot(1, 3, 1);
+% plot_im(crop_im_hol, 'Focused Image');
 subplot(1, 3, 1);
-plot_im(crop_im_hol, 'Focused Image');
+plot_im(PSH, 'Abs(Noiseless PSH)', 'intensity');
 subplot(1, 3, 2);
-plot_im(PSH, 'Abs(PSH)', 'intensity');
-subplot(1, 3, 3);
 plot_im(PSH_noisy, 'Abs(Noisy PSH)', 'intensity');
+subplot(1, 3, 3);
+PSH_diff = struct('intensity', PSH.intensity - PSH_noisy.intensity, ...
+                  'x', PSH.x, 'y', PSH.y);
+plot_im(PSH_diff, 'Abs(Noise)');
 
 %compare the noiseless vs noisy simulated images
 hfig3 = figure('Name', 'Simulated Image Comparison');
