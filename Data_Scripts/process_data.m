@@ -5,13 +5,13 @@
 addpath('../MATLAB_functions/'); %include helper functions
 addpath('./Data_Functions/');
 
-base_folder = '../Images/Bench_Images/5-26-22/';
+base_folder = '../Images/Bench_Images/5-30-22/';
 %tuned crop parameters to center the images
 crop1 = [1 1080 1 1440];   %5mm crop params
 %open images
-im1 = open_im(strcat(base_folder, 'usaf4-20x-0deg.png'));
-im2 = open_im(strcat(base_folder, 'usaf4-20x-60deg.png'));
-im3 = open_im(strcat(base_folder, 'usaf4-20x-120deg.png'));
+im1 = open_im(strcat(base_folder, 'usaf-4x-0deg.png'));
+im2 = open_im(strcat(base_folder, 'usaf-4x-60deg.png'));
+im3 = open_im(strcat(base_folder, 'usaf-4x-120deg.png'));
 % convert images into data structures
 figure(1);
 imagesc(crop(im1, crop1));
@@ -27,7 +27,7 @@ PARAMS  = bench_params(delta_x, delta_y);
 %make complex holograms
 c_hol = hol_from_data([h1 h2 h3]);
 %flags to specify what plots to make
-movie_label = 'usaf4-20x-movie-5-26';
+movie_label = 'usaf-4x-movie-5-30';
 flag_plot_hologram = true;
 flag_gen_3dhol     = true;
 flag_show_focus    = true;
