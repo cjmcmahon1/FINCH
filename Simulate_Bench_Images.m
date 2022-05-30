@@ -62,7 +62,7 @@ forward_prop = struct('intensity', forward_plane, 'x', PSH.x, 'y', PSH.y);
 
 %Plot P1, P2, interference, as well as the resulting complex hologram to
 %check that everything is working.
-flag_PSH_info = true;
+flag_PSH_info = false;
 if flag_PSH_info
     % generate lots of PSH plots to check that the sampling is sufficient
     hfig = figure('Name', 'Interference and Complex Hologram');
@@ -120,7 +120,7 @@ im3_noiseless.angle = PSH.images(3).angle;
 % plot_im(conv_bp, conv_bp_label, 'intensity');
 
 %add shot noise (poissnrnd) to the image
-noise = 1.e3;
+noise = 1.;
 %create noisy PSH to model the noise we expect from each hologram
 PSH_noisy = complex_hologram(p1, p2, 3, noise, true);
 %normalize PSH to 1
@@ -149,6 +149,37 @@ im3_diff_struct = struct('intensity', im3_difference, ...
 %convolve the in-focus image with the noisy PSH
 %conv_noisy = convolve(crop_im_hol, PSH_noisy);
 conv_noisy = hol_from_data([im1_noisy, im2_noisy, im3_noisy]);
+
+%plot the input interference patterns used to generate the noisy/noiseless
+%holograms
+noise_im1 = struct('intensity', ...
+                   PSH.images(1).intensity - PSH_noisy.images(1).intensity, ... 
+                   'x', PSH.images(1).x, 'y', PSH.images(1).y);
+noise_im2 = struct('intensity', ...
+                   PSH.images(2).intensity - PSH_noisy.images(2).intensity, ... 
+                   'x', PSH.images(2).x, 'y', PSH.images(2).y);
+noise_im3 = struct('intensity', ...
+                   PSH.images(3).intensity - PSH_noisy.images(3).intensity, ... 
+                   'x', PSH.images(3).x, 'y', PSH.images(3).y);
+figure('Name', 'Noisy Input Images');
+subplot(3, 3, 1);
+plot_im(PSH.images(1), 'Interference Pattern 1');
+subplot(3, 3, 2);
+plot_im(PSH.images(2), 'Interference Pattern 2');
+subplot(3, 3, 3);
+plot_im(PSH.images(3), 'Interference Pattern 3');
+subplot(3, 3, 4);
+plot_im(PSH_noisy.images(1), 'Noisy Interference Pattern 1');
+subplot(3, 3, 5);
+plot_im(PSH_noisy.images(2), 'Noisy Interference Pattern 2');
+subplot(3, 3, 6);
+plot_im(PSH_noisy.images(3), 'Noisy Interference Pattern 3');
+subplot(3, 3, 7);
+plot_im(noise_im1, 'Noise 1');
+subplot(3, 3, 8);
+plot_im(noise_im2, 'Noise 2');
+subplot(3, 3, 9);
+plot_im(noise_im3, 'Noise 3');
 
 %debug fields where we take the original fields from the PSH and plug them
 %in to hol_from_data to confirm that the data hologram is generated in the
@@ -193,16 +224,14 @@ bp_diff_struct = struct('intensity', bp_difference, ...
                         'x', conv_noisy.x, 'y', conv_noisy.y);
 
 %Compare the noiseless and noisy PSH
-hfig2 = figure('Name', 'PSH Comparison');
-pos = get(hfig2,'position');
-set(hfig2,'position',pos.*[0.25 0.25 2.5 1.9]); %make plot window wider
+figure('Name', 'PSH Comparison');
 % subplot(1, 3, 1);
 % plot_im(crop_im_hol, 'Focused Image');
-subplot(1, 3, 1);
+subplot(3, 1, 1);
 plot_im(PSH, 'Abs(Noiseless PSH)', 'intensity');
-subplot(1, 3, 2);
+subplot(3, 1, 2);
 plot_im(PSH_noisy, 'Abs(Noisy PSH)', 'intensity');
-subplot(1, 3, 3);
+subplot(3, 1, 3);
 PSH_diff = struct('intensity', PSH.intensity - PSH_noisy.intensity, ...
                   'x', PSH.x, 'y', PSH.y);
 plot_im(PSH_diff, 'Abs(Noise)');
