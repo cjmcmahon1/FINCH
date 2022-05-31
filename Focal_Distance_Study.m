@@ -40,10 +40,7 @@ z_values = linspace(0, 0.2, num_z_vals);
 propagated = zeros(PARAMS.Mx, PARAMS.My, num_z_vals);
 back_propped = zeros(PARAMS.Mx, PARAMS.My, num_z_vals);
 noise_norm_PSF = zeros(PARAMS.Mx, PARAMS.My, num_z_vals);
-ft_noise_norm = zeros(PARAMS.Mx, PARAMS.My, num_z_vals);
-c_hol = zeros(PARAMS.Mx, PARAMS.My, num_z_vals);
-c_hol_noisy = zeros(PARAMS.Mx, PARAMS.My, num_z_vals);
-% back_propped_noisy = zeros(PARAMS.Mx, PARAMS.My, num_z_vals);
+noise_norm_OTF = zeros(PARAMS.Mx, PARAMS.My, num_z_vals);
 %generate an incoherent/coherent image PSF for comparison
 p1 = propagate_init(0, PARAMS);
 inc_psf = struct('intensity', abs(p1.field).^2, 'x', p1.x, 'y', p1.y);
@@ -82,47 +79,19 @@ for z_idx = 1:num_z_vals
     back_propped(:,:,z_idx) = tmp_bp;
     tmp_noise_norm = PSF_noise_norm(tmp_intensity, tmp_bp);
     noise_norm_PSF(:,:,z_idx) = tmp_noise_norm;
-    ft_noise_norm(:,:,z_idx) = fftshift(fft2(tmp_noise_norm));
-    %additionally, generate the hologram using phase shifting
-    tmp_hol = cHol(z_values(z_idx), 0, PARAMS);
-    c_hol(:,:,z_idx)  = tmp_hol ./ sum(abs(tmp_hol), 'all'); %normalize
-    %generate a noisy hologram using phase shifting
-    tmp_hol_noisy = cHol(z_values(z_idx), noise, PARAMS);
-    noisy_norm = sum(abs(tmp_hol_noisy), 'all');
-    c_hol_noisy(:,:,z_idx)  = tmp_hol_noisy ./ noisy_norm; %normalize
+    noise_norm_OTF(:,:,z_idx) = fftshift(fft2(tmp_noise_norm));
 end
+
 %Here, we can note that if we put the imaging plane in the exact
 %center of two point sources, the effective interference pattern is as if
 %we just took the square of one of the fields. Therefore, our
 %computationally efficient method for getting the interference pattern is
 %to just square the single propagated field at each distance. 
 int_patterns = propagated.^2;
-% int_patterns = c_hol;
-int_norm = sum(abs(int_patterns), [1 2]); %these should all be 1
-% int_patterns = int_patterns ./ sum(abs(int_patterns), [1 2]); %normalize
 ft_interference = fftshift(fft(int_patterns, [], 1), 1);
 ft_back_propped = fftshift(fft(back_propped, [], 1), 1);
-%plot the detectability of the PSFs after being fresnel propagated
-max_back_propped = max(abs(back_propped), [], [1 2]);
-intensity_back_propped = sum(abs(back_propped), [1 2]);
-%calculate detectability of incoherent imaging for reference
-incoh_psf_norm = sum(abs(inc_psf.intensity), 'all');
-max_incoh_psf = max(abs(inc_psf.intensity), [], 'all');
-incoh_detectability = max_incoh_psf ./ incoh_psf_norm;
-detectability = max_back_propped ./ (intensity_back_propped.^(0.5));
-detectability = detectability ./ incoh_detectability; 
-zinv = 1./ z_values;
-ratio = zinv ./ squeeze(detectability);
-mean_ratio = 1;
-figure('Name', 'Detectability');
-plot(z_values, squeeze(detectability));
-% hold on
-% plot(z_values, zinv ./ mean_ratio);
-xlabel('z (mm)');
-title('Detectability');
-% legend('Detectability', '1/z');
 
-flag_plot_MTF_noise_norm = true;
+flag_plot_MTF_noise_norm = false;
 if flag_plot_MTF_noise_norm
     %plot incoherent and coherent MTF for reference
     figure('Name', 'Noise Norm MTF');
@@ -132,10 +101,10 @@ if flag_plot_MTF_noise_norm
     hold on;
     legend_list = ["Incoherent Imaging" "Coherent Imaging"];
     for z_idx =[1 2 3 10]
-        plt_vals = abs(ft_noise_norm(:,midpt, z_idx));
+        plt_vals = abs(noise_norm_OTF(:,midpt, z_idx));
         plot(fx, plt_vals);
-        legend_list = [legend_list string(sprintf('z=%.2e mm', ...
-                                                  z_values(z_idx)))];
+        tmp_label = string(sprintf('z=%.2e um', z_values(z_idx).*1e3));
+        legend_list = [legend_list tmp_label];
         hold on;
     end
     legend(legend_list);
@@ -161,6 +130,53 @@ if flag_plot_MTF_max_norm
     title('Normalized MTF: Field^2');
     hold off;
 end
+
+%compute the noise-normalized detectability
+%this is just the area under the noise-normalized MTF
+detectability = squeeze(sum(abs(noise_norm_OTF), [1 2]));
+flag_plot_detectability = true;
+if flag_plot_detectability
+    figure('Name', 'Detectability Plot');
+    plot(z_values.*1e3, detectability);
+    xlabel('\Deltaz (\mum)');
+    title("Detectability");
+end
+%Old Detectability Method (max PSF / norm PSF)
+
+%plot the detectability of the PSFs after being fresnel propagated
+% max_back_propped = max(abs(back_propped), [], [1 2]);
+% intensity_back_propped = sum(abs(back_propped), [1 2]);
+% %calculate detectability of incoherent imaging for reference
+% incoh_psf_norm = sum(abs(inc_psf.intensity), 'all');
+% max_incoh_psf = max(abs(inc_psf.intensity), [], 'all');
+% incoh_detectability = max_incoh_psf ./ incoh_psf_norm;
+% detectability = max_back_propped ./ (intensity_back_propped.^(0.5));
+% detectability = detectability ./ incoh_detectability; 
+% zinv = 1./ z_values;
+% ratio = zinv ./ squeeze(detectability);
+% mean_ratio = 1;
+% figure('Name', 'Detectability');
+% plot(z_values, squeeze(detectability));
+% % hold on
+% % plot(z_values, zinv ./ mean_ratio);
+% xlabel('z (mm)');
+% title('Detectability');
+% % legend('Detectability', '1/z');
+
+%numerically generate noisy holograms and their fourier transforms
+% c_hol = zeros(PARAMS.Mx, PARAMS.My, num_z_vals);
+% c_hol_noisy = zeros(PARAMS.Mx, PARAMS.My, num_z_vals);
+% for z_idx = 1:num_z_vals
+%     %additionally, generate the hologram using phase shifting
+%     tmp_hol = cHol(z_values(z_idx), 0, PARAMS);
+%     c_hol(:,:,z_idx)  = tmp_hol ./ sum(abs(tmp_hol), 'all'); %normalize
+%     %generate a noisy hologram using phase shifting
+%     tmp_hol_noisy = cHol(z_values(z_idx), noise, PARAMS);
+%     noisy_norm = sum(abs(tmp_hol_noisy), 'all');
+%     c_hol_noisy(:,:,z_idx)  = tmp_hol_noisy ./ noisy_norm; %normalize
+% end
+
+%Other outdated normalizations:
 
 %Compute the efficiency-normalized MTF, this is just normalized by the zero
 %spatial frequency component. This is a common tecnhique, but not very
