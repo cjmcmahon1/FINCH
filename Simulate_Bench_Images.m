@@ -227,11 +227,11 @@ bp_diff_struct = struct('intensity', bp_difference, ...
 figure('Name', 'PSH Comparison');
 % subplot(1, 3, 1);
 % plot_im(crop_im_hol, 'Focused Image');
-subplot(3, 1, 1);
+subplot(1, 3, 1);
 plot_im(PSH, 'Abs(Noiseless PSH)', 'intensity');
-subplot(3, 1, 2);
+subplot(1, 3, 2);
 plot_im(PSH_noisy, 'Abs(Noisy PSH)', 'intensity');
-subplot(3, 1, 3);
+subplot(1, 3, 3);
 PSH_diff = struct('intensity', PSH.intensity - PSH_noisy.intensity, ...
                   'x', PSH.x, 'y', PSH.y);
 plot_im(PSH_diff, 'Abs(Noise)');

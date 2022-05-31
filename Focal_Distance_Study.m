@@ -36,27 +36,30 @@ fy=fx;
 num_z_vals = 10;
 noise = 1.0;
 midpt = round(PARAMS.Mx / 2);
-z_values = linspace(1e-5, 0.5, num_z_vals);
+z_values = linspace(0, 0.2, num_z_vals);
 propagated = zeros(PARAMS.Mx, PARAMS.My, num_z_vals);
 back_propped = zeros(PARAMS.Mx, PARAMS.My, num_z_vals);
+noise_norm_PSF = zeros(PARAMS.Mx, PARAMS.My, num_z_vals);
+ft_noise_norm = zeros(PARAMS.Mx, PARAMS.My, num_z_vals);
 c_hol = zeros(PARAMS.Mx, PARAMS.My, num_z_vals);
 c_hol_noisy = zeros(PARAMS.Mx, PARAMS.My, num_z_vals);
-back_propped_noisy = zeros(PARAMS.Mx, PARAMS.My, num_z_vals);
+% back_propped_noisy = zeros(PARAMS.Mx, PARAMS.My, num_z_vals);
 %generate an incoherent/coherent image PSF for comparison
 p1 = propagate_init(0, PARAMS);
 inc_psf = struct('intensity', abs(p1.field).^2, 'x', p1.x, 'y', p1.y);
 coh_psf = p1;
-flag_plot_inc_coh_MTF = true;
+inc_ft = FT(inc_psf);
+coh_ft = FT(p1);
+inc_ft_norm = inc_ft.intensity(midpt, midpt); %intensity normalization
+coh_ft_norm = coh_ft.intensity(midpt, midpt);
+inc_ft.intensity = inc_ft.intensity ./ inc_ft_norm;
+coh_ft.intensity = coh_ft.intensity ./ coh_ft_norm;
+
+flag_plot_inc_coh_MTF = false;
 if flag_plot_inc_coh_MTF
     figure('Name', 'Incoherent Image Plots');
     % subplot(1, 2, 1);
     % plot_im(inc_psf, 'Incoherent Imaging PSF');
-    inc_ft = FT(inc_psf);
-    coh_ft = FT(p1);
-    inc_ft_norm = inc_ft.intensity(midpt, midpt); %intensity normalization
-    coh_ft_norm = coh_ft.intensity(midpt, midpt);
-    inc_ft.intensity = inc_ft.intensity ./ inc_ft_norm;
-    coh_ft.intensity = coh_ft.intensity ./ coh_ft_norm;
     % subplot(1, 2, 2);
     plot(inc_ft.fx, abs(inc_ft.intensity(:,midpt)));
     hold on;
@@ -71,10 +74,15 @@ end
 for z_idx = 1:num_z_vals
     %for each z value, compute the initial propagated fields
     tmp_propagated = propagate_init(z_values(z_idx), PARAMS);
+    tmp_field_sq = (tmp_propagated.field).^2;
+    tmp_intensity = abs(tmp_propagated.field).^2;
     propagated(:,:,z_idx) = tmp_propagated.field;
     %fresnel propagate the field to its focal point
-    back_propped(:,:,z_idx) = fresnel_prop((tmp_propagated.field).^2, ...
-                                            -z_values(z_idx)/2, PARAMS);
+    tmp_bp = fresnel_prop(tmp_field_sq, -z_values(z_idx)/2, PARAMS);
+    back_propped(:,:,z_idx) = tmp_bp;
+    tmp_noise_norm = PSF_noise_norm(tmp_intensity, tmp_bp);
+    noise_norm_PSF(:,:,z_idx) = tmp_noise_norm;
+    ft_noise_norm(:,:,z_idx) = fftshift(fft2(tmp_noise_norm));
     %additionally, generate the hologram using phase shifting
     tmp_hol = cHol(z_values(z_idx), 0, PARAMS);
     c_hol(:,:,z_idx)  = tmp_hol ./ sum(abs(tmp_hol), 'all'); %normalize
@@ -82,10 +90,6 @@ for z_idx = 1:num_z_vals
     tmp_hol_noisy = cHol(z_values(z_idx), noise, PARAMS);
     noisy_norm = sum(abs(tmp_hol_noisy), 'all');
     c_hol_noisy(:,:,z_idx)  = tmp_hol_noisy ./ noisy_norm; %normalize
-    %propagate noisy hologram
-    back_propped_noisy(:,:,z_idx) = fresnel_prop(c_hol_noisy.intensity, ...
-                                               -z_values(z_idx)/2, PARAMS);
-    
 end
 %Here, we can note that if we put the imaging plane in the exact
 %center of two point sources, the effective interference pattern is as if
@@ -118,6 +122,28 @@ xlabel('z (mm)');
 title('Detectability');
 % legend('Detectability', '1/z');
 
+flag_plot_MTF_noise_norm = true;
+if flag_plot_MTF_noise_norm
+    %plot incoherent and coherent MTF for reference
+    figure('Name', 'Noise Norm MTF');
+    plot(inc_ft.fx, abs(inc_ft.intensity(:,midpt)));
+    hold on;
+    plot(coh_ft.fx, abs(coh_ft.intensity(:,midpt)));
+    hold on;
+    legend_list = ["Incoherent Imaging" "Coherent Imaging"];
+    for z_idx =[1 2 3 10]
+        plt_vals = abs(ft_noise_norm(:,midpt, z_idx));
+        plot(fx, plt_vals);
+        legend_list = [legend_list string(sprintf('z=%.2e mm', ...
+                                                  z_values(z_idx)))];
+        hold on;
+    end
+    legend(legend_list);
+    xlabel('f_x (mm^{-1})');
+    title('Noise Normalized MTF');
+    hold off;
+end
+
 %plot the MTF for select z-values, normalized such that the max value=1
 flag_plot_MTF_max_norm = false;
 if flag_plot_MTF_max_norm
@@ -140,54 +166,54 @@ end
 %spatial frequency component. This is a common tecnhique, but not very
 %informative in analyzing FINCH
 % eff_norm_MTF = ft_interference ./ ft_interference(midpt, midpt, :);
-eff_norm_MTF = ft_back_propped ./ ft_back_propped(midpt,midpt,:);
-figure('Name', 'MTF: Efficiency Normalized');
-legend_list = [];
-for z_idx =[1 2 3]
-    plt_vals = abs(eff_norm_MTF(:,midpt, z_idx));
-    plot(fx, plt_vals);
-    legend_list = [legend_list string(sprintf('z=%4d um', ...
-                                              z_values(z_idx)*1e3))];
-    hold on;
-end
-legend(legend_list);
-title('Efficiency Normalized MTF: Field^2');
-xlabel('f_x (mm^{-1})')
-hold off;
+% eff_norm_MTF = ft_back_propped ./ ft_back_propped(midpt,midpt,:);
+% figure('Name', 'MTF: Efficiency Normalized');
+% legend_list = [];
+% for z_idx =[1 2 3]
+%     plt_vals = abs(eff_norm_MTF(:,midpt, z_idx));
+%     plot(fx, plt_vals);
+%     legend_list = [legend_list string(sprintf('z=%4d um', ...
+%                                               z_values(z_idx)*1e3))];
+%     hold on;
+% end
+% legend(legend_list);
+% title('Efficiency Normalized MTF: Field^2');
+% xlabel('f_x (mm^{-1})')
+% hold off;
 %now look at the noise. We are motivated by Heintzmann's Noise-Normalized
 %MTF. We want to compare our MTF with its relative noise threshold, instead
 %of arbitrarily normalizing to unit area.
-c_hol_noise = abs(c_hol_noisy - c_hol);
-c_hol_ft = fftshift(fft(c_hol, [], 1), 1);
-c_hol_noise_ft = fftshift(fft(c_hol_noise, [], 1), 1);
-figure('Name', 'MTF: Noise Normalized');
-legend_list = [];
-for z_idx =[1 3 5]
-    plt_vals = abs(c_hol(:, midpt, z_idx));
-    %noise_magnitude = sum(abs(c_hol_noise(:, midpt, z_idx)), 'all');
-    noise_magnitude = abs(c_hol_noise(:, midpt, z_idx));
-    norm_plt_vals = plt_vals ./ noise_magnitude;
-    window = abs((1:PARAMS.Mx) - midpt) <=200;
-    norm_plt_vals = norm_plt_vals .* window;
-    plot(fx, norm_plt_vals); %normalize
-    legend_list = [legend_list string(sprintf('z=%.2d', z_values(z_idx)))];
-    hold on;
-end
-legend(legend_list);
-title('Noise-Normalized MTF');
-hold off;
+% c_hol_noise = abs(c_hol_noisy - c_hol);
+% c_hol_ft = fftshift(fft(c_hol, [], 1), 1);
+% c_hol_noise_ft = fftshift(fft(c_hol_noise, [], 1), 1);
+% figure('Name', 'MTF: Noise Normalized');
+% legend_list = [];
+% for z_idx =[1 3 5]
+%     plt_vals = abs(c_hol(:, midpt, z_idx));
+%     %noise_magnitude = sum(abs(c_hol_noise(:, midpt, z_idx)), 'all');
+%     noise_magnitude = abs(c_hol_noise(:, midpt, z_idx));
+%     norm_plt_vals = plt_vals ./ noise_magnitude;
+%     window = abs((1:PARAMS.Mx) - midpt) <=200;
+%     norm_plt_vals = norm_plt_vals .* window;
+%     plot(fx, norm_plt_vals); %normalize
+%     legend_list = [legend_list string(sprintf('z=%.2d', z_values(z_idx)))];
+%     hold on;
+% end
+% legend(legend_list);
+% title('Noise-Normalized MTF');
+% hold off;
 
-figure('Name', 'Noise');
-legend_list = [];
-for z_idx =[1, 3, 5]
-    plt_vals = abs(c_hol_noise(:, midpt, z_idx));
-    plot(fx, plt_vals); %normalize
-    legend_list = [legend_list string(sprintf('z=%.2d', z_values(z_idx)))];
-    hold on;
-end
-legend(legend_list);
-title('Noise');
-hold off;
+% figure('Name', 'Noise');
+% legend_list = [];
+% for z_idx =[1, 3, 5]
+%     plt_vals = abs(c_hol_noise(:, midpt, z_idx));
+%     plot(fx, plt_vals); %normalize
+%     legend_list = [legend_list string(sprintf('z=%.2d', z_values(z_idx)))];
+%     hold on;
+% end
+% legend(legend_list);
+% title('Noise');
+% hold off;
 % figure('Name', 'Movie');
 % hol3d_ft = fftshift(fft2(propagated.^2));
 % hol3d = struct('intensity', hol3d_ft, 'x', x, 'y', y, 'z', z_values);
@@ -199,6 +225,13 @@ hold off;
 %./Test_Scripts/
 
 %Function Definitions are in ./MATLAB_FUNCTIONS/
+
+function norm_intensity = PSF_noise_norm(image_intensity, back_propagated)
+    num = sum(abs(image_intensity).^2, 'all');
+    denom = sum(abs(back_propagated).^2, 'all');
+    norm = 0.5 * squeeze((num./denom)).^(0.5);
+    norm_intensity = norm .* back_propagated;
+end
 
 function PSH_intensity = cHol(z, noise, PARAMS)
     %generate a complex hologram from an imaging plane a distance z from

@@ -13,6 +13,5 @@ function propped = fresnel_prop(im, zf, bench_params)
     % Propagate
     ft = fftshift(fft2(im));
     proppedFt = ft .* H;
-    %FIX LATER: for testing, only take imaginary part before IFT
     propped = ifft2(ifftshift(proppedFt));
 end
