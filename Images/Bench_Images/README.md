@@ -9,3 +9,4 @@ The images are organized into folders by date taken, and the image subject is de
   <li>led: no pinhole, subject is some dust specks on the glass covering of the LED</li>
   <li>led-500um: 500um pinhole, focused to same dust in front of LED</li>
 </ul>
+The angles are specified with the handles, '0deg', '60deg', '120deg', to represent the rotation of the second linear polarizer (0 degrees, 60 degrees, 120 degrees, etc). These angles are not relative to some axis, they are just based on the markings on the rotation mount. This is OK for our purposes since we are only interested in the relative angle between these images.
