@@ -17,4 +17,4 @@ Images from the bench setup can be found in `./Images`.
 ## References
 Introduction to Fourier Optics - Joseph Goodman\
 Computational Fourier Optics: A MATLAB Tutorial - David Voelz\
-Brooker 2021- Single Shot
+Nisan Siegel and Gary Brooker, "Single shot holographic super-resolution microscopy," Opt. Express 29, 15953-15968 (2021)
