@@ -9,6 +9,6 @@ The images are organized into folders by date taken, and the image subject is de
   <li>usaf: USAF target</li>
   <li>led: no pinhole, subject is some dust specks on the glass covering of the LED</li>
   <li>led-500um: 500um pinhole, focused to same dust in front of LED</li>
-</ul>
+</ul>\
 ## Presentation Images
 Various images and figures used for FINCH presentations. Many of these plots were generated from the MATLAB code in the main folder.
