@@ -36,21 +36,21 @@ fy=fx;
 num_z_vals = 10;
 noise = 1.0;
 midpt = round(PARAMS.Mx / 2);
-z_values = linspace(0, 0.2, num_z_vals);
+z_values = linspace(0, 1e5, num_z_vals);
 propagated = zeros(PARAMS.Mx, PARAMS.My, num_z_vals);
 back_propped = zeros(PARAMS.Mx, PARAMS.My, num_z_vals);
 noise_norm_PSF = zeros(PARAMS.Mx, PARAMS.My, num_z_vals);
 noise_norm_OTF = zeros(PARAMS.Mx, PARAMS.My, num_z_vals);
 %generate an incoherent/coherent image PSF for comparison
 p1 = propagate_init(0, PARAMS);
-inc_psf = struct('intensity', abs(p1.field).^2, 'x', p1.x, 'y', p1.y);
-coh_psf = p1;
-inc_ft = FT(inc_psf);
-coh_ft = FT(p1);
-inc_ft_norm = inc_ft.intensity(midpt, midpt); %intensity normalization
-coh_ft_norm = coh_ft.intensity(midpt, midpt);
-inc_ft.intensity = inc_ft.intensity ./ inc_ft_norm;
-coh_ft.intensity = coh_ft.intensity ./ coh_ft_norm;
+inc_PSF = struct('intensity', abs(p1.field).^2, 'x', p1.x, 'y', p1.y);
+coh_PSF = p1;
+inc_OTF = FT(inc_PSF);
+coh_OTF = FT(coh_PSF);
+inc_OTF_norm = inc_OTF.intensity(midpt, midpt); %intensity normalization
+coh_OTF_norm = coh_OTF.intensity(midpt, midpt);
+inc_OTF.intensity = inc_OTF.intensity ./ inc_OTF_norm;
+coh_OTF.intensity = coh_OTF.intensity ./ coh_OTF_norm;
 
 flag_plot_inc_coh_MTF = false;
 if flag_plot_inc_coh_MTF
@@ -58,9 +58,9 @@ if flag_plot_inc_coh_MTF
     % subplot(1, 2, 1);
     % plot_im(inc_psf, 'Incoherent Imaging PSF');
     % subplot(1, 2, 2);
-    plot(inc_ft.fx, abs(inc_ft.intensity(:,midpt)));
+    plot(inc_OTF.fx, abs(inc_OTF.intensity(:,midpt)));
     hold on;
-    plot(coh_ft.fx, abs(coh_ft.intensity(:,midpt)));
+    plot(coh_OTF.fx, abs(coh_OTF.intensity(:,midpt)));
     axis('square');
     title('MTF');
     legend('Incoherent Imaging', 'Coherent Imaging');
@@ -91,13 +91,13 @@ int_patterns = propagated.^2;
 ft_interference = fftshift(fft(int_patterns, [], 1), 1);
 ft_back_propped = fftshift(fft(back_propped, [], 1), 1);
 
-flag_plot_MTF_noise_norm = false;
+flag_plot_MTF_noise_norm = true;
 if flag_plot_MTF_noise_norm
     %plot incoherent and coherent MTF for reference
     figure('Name', 'Noise Norm MTF');
-    plot(inc_ft.fx, abs(inc_ft.intensity(:,midpt)));
+    plot(inc_OTF.fx, abs(inc_OTF.intensity(:,midpt)));
     hold on;
-    plot(coh_ft.fx, abs(coh_ft.intensity(:,midpt)));
+    plot(coh_OTF.fx, abs(coh_OTF.intensity(:,midpt)));
     hold on;
     legend_list = ["Incoherent Imaging" "Coherent Imaging"];
     for z_idx =[1 2 3 10]
@@ -134,13 +134,34 @@ end
 %compute the noise-normalized detectability
 %this is just the area under the noise-normalized MTF
 detectability = squeeze(sum(abs(noise_norm_OTF), [1 2]));
+inc_detectability = squeeze(sum(abs(inc_OTF.intensity), [1 2]));
 flag_plot_detectability = true;
 if flag_plot_detectability
     figure('Name', 'Detectability Plot');
     plot(z_values.*1e3, detectability);
+    hold on;
+    yline(inc_detectability, '-k');
+    legend('FINCH', 'Incoherent Imaging');
     xlabel('\Deltaz (\mum)');
     title("Detectability");
 end
+
+%compute Prof. Mertz's metric, which encapsulates resolution in the size of
+%the PSF
+new_detectability = new_metric(noise_norm_PSF);
+new_incoherent_detectability = new_metric(inc_PSF.intensity);
+flag_plot_new_metric = true;
+if flag_plot_new_metric
+    figure('Name', 'New Detectability Metric');
+    plot(z_values.*1e3, new_detectability);
+    hold on;
+    yline(new_incoherent_detectability, '-k');
+    legend('FINCH', 'Incoherent Imaging');
+    xlabel('\Deltaz (\mum)');
+    title("New Metric");
+    hold off;
+end
+
 %Old Detectability Method (max PSF / norm PSF)
 
 %plot the detectability of the PSFs after being fresnel propagated
@@ -241,6 +262,13 @@ end
 %./Test_Scripts/
 
 %Function Definitions are in ./MATLAB_FUNCTIONS/
+
+function res = new_metric(PSF)
+    num = sum(abs(PSF), [1 2]).^2;
+    denom = sum(abs(PSF).^2, [1 2]);
+    res = squeeze(num./denom);
+end
+
 
 function norm_intensity = PSF_noise_norm(image_intensity, back_propagated)
     num = sum(abs(image_intensity).^2, 'all');

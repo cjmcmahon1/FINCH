@@ -9,13 +9,16 @@ addpath('./Data_Scripts/Data_Functions/');
 
 %load image
 im_base_folder = './Images/Bench_Images/Focused_Images/';
-im = open_im(strcat(im_base_folder, 'led-500um-focused.png'));
+im = open_im(strcat(im_base_folder, 'usaf-4x-widefield.png'));
 crop_param = [1 1080 160 1240];
 % crop_param = [500 505 600 605];
 crop_im = crop(im, crop_param);
+%FOR TESTING: invert contrast in image
+crop_im = abs(1 - crop_im);
 %normalize image such that the total number of photon counts is 1
 crop_im_norm = sum(crop_im, 'all');
 crop_im = crop_im ./ crop_im_norm;
+
 crop_im_hol = image_data_struct(crop_im, 0);
 %load a spoke pattern as an ideal image
 % crop_im = load('./Images/Bench_Images/Focused_Images/I1.mat').I1;
