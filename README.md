@@ -6,7 +6,9 @@ Because of the self-interference structure of FINCH, the two planes P1 and P2 ar
 ![image](Images/Presentation_Images/Figures/interference_sim_diagram.jpg)\
 Here, the two fields are the same, and they propagate the same distance forward/backward to the imaging plane, where we then take the absolute value squared to get the intensity. One of the two fields is given a relative phase shift, however. This phase shift is important to be able to recover a single field from a series of interference patterns.
 ## Code Structure
-Relevant scripts for plotting simulation are in the top directory `./`. Most helper functions are in the subfolder `./MATLAB_functions`. Some scripts for processing actual data are in `./Data_Scripts/`, along with some data-specific helper functions. Scripts designed to test basic functionality of the Fresnel propagator, Fourier transform, etc., are in `./Test_Scripts`.
+Relevant scripts for plotting simulation are in the top directory `./`. Most helper functions are in the subfolder `./MATLAB_functions`. Some scripts for processing actual data are in `./Data_Scripts/`. Scripts designed to test basic functionality of the Fresnel propagator, Fourier transform, etc., are in `./Test_Scripts`.\
+The span of this code is the Generation of fresnel holograms from simulated or real images, fresnel propagation of the holograms, and figure/movie generation to view in focus images. \
+We additionally study the addition of shot noise to the input images, to analyze the effect on the resulting hologram. To aid in this we calculate several metrics for quantifying the performance of the FINCH system. These studies can be found in `Focal_Distance_Study.m`.
 ## Bench Setup
 The actual setup uses a triangle interferometer, which produces the same effect as the simulated bi-refringent lens.\
 ![image](Images/Presentation_Images/Figures/FINCH%20Triangle%20Interferometer%20V2.png)\
@@ -17,4 +19,4 @@ Images from the bench setup can be found in `./Images`.
 ## References
 Introduction to Fourier Optics - Joseph Goodman\
 Computational Fourier Optics: A MATLAB Tutorial - David Voelz\
-Nisan Siegel and Gary Brooker, "Single shot holographic super-resolution microscopy," Opt. Express 29, 15953-15968 (2021)
+Nisan Siegel and Gary Brooker, "Single shot holographic super-resolution microscopy," Opt. Express 29, 15953-15968 (2021)\
