@@ -14,7 +14,7 @@ crop_param = [1 1080 160 1240];
 % crop_param = [500 505 600 605];
 crop_im = crop(im, crop_param);
 %FOR TESTING: invert contrast in image
-crop_im = abs(1 - crop_im);
+% crop_im = abs(1 - crop_im);
 %normalize image such that the total number of photon counts is 1
 crop_im_norm = sum(crop_im, 'all');
 crop_im = crop_im ./ crop_im_norm;
@@ -50,9 +50,13 @@ shifted2 = shifted_hologram(p1, p2, 4 * pi / 3, 0, true);
 shifted3 = shifted_hologram(p1, p2, 0 * pi / 3, 0, true);
 %generate the complex-valued hologram
 PSH = complex_hologram(p1, p2, 3, 0, true);
-%normalize PSH to 1
-PSH_norm = sum(abs(PSH.intensity), 'all');
-% PSH.intensity = PSH.intensity ./ PSH_norm;
+%normalize PSH to match the phase and magnitude of (p1.field).^2
+% PSH_int = conj(PSH.intensity) ./ (3i*sqrt(3)/2);
+%alternatively, just set the PSH equal to one of the squared fields
+%this has less issues with sampling around k=0
+PSH_int = (p1.field).^2;
+% PSH_norm = sum(abs(PSH.intensity), 'all');
+PSH.intensity = PSH_int;
 
 %Fresnel propagate the complex hologram backwards. We propagate backwards
 %by z1/2 and forwards by z2/2 because of the phase doubling. We expect the
@@ -126,9 +130,9 @@ im3_noiseless.angle = PSH.images(3).angle;
 noise = 1.;
 %create noisy PSH to model the noise we expect from each hologram
 PSH_noisy = complex_hologram(p1, p2, 3, noise, true);
-%normalize PSH to 1
-PSH_noisy_norm = sum(abs(PSH_noisy.intensity), 'all');
-% PSH_noisy.intensity = PSH_noisy.intensity ./ PSH_noisy_norm;
+%adjust the phase of the hologram to match the squared field
+PSH_noisy_int = conj(PSH_noisy.intensity) ./ (3i*sqrt(3)/2);
+PSH_noisy.intensity = PSH_noisy_int;
 
 %create phase shifted holograms for plotting
 im1_noisy = convolve(crop_im_hol, PSH_noisy.images(1), true);
