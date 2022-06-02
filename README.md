@@ -3,7 +3,8 @@
 This is a MATLAB repository designed to simulate Fresnel Incoherent Correlation Holography (FINCH). The starting point for most of the code is a system with a bi-refringent lens.\
 ![image](Images/Presentation_Images/Figures/BRL_diagram.jpg)\
 Because of the self-interference structure of FINCH, the two planes P1 and P2 are assumed to be conjugate image planes, which can then be fresnel propagated to the imaging plane in the center. We therefore want to simulate the following system:\
-
+![image](Images/Presentation_Images/Figures/interference_sim_diagram.jpg)\
+Here, the two fields are the same, and they propagate the same distance forward/backward to the imaging plane, where we then take the absolute value squared to get the intensity. One of the two fields is given a relative phase shift, however. This phase shift is important to be able to recover a single field from a series of interference patterns.
 ## Code Structure
 Relevant scripts for plotting simulation are in the top directory `./`. Most helper functions are in the subfolder `./MATLAB_functions`. Some scripts for processing actual data are in `./Data_Scripts/`, along with some data-specific helper functions. Scripts designed to test basic functionality of the Fresnel propagator, Fourier transform, etc., are in `./Test_Scripts`.
 ## Bench Setup
